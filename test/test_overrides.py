@@ -1017,5 +1017,15 @@ class TestDisabledTorchFunction(TestCase):
         self.assertEqual(torch.nn.functional.linear(inp, t2, t1), "called")
 
 
+class TestTorchFunctionByWeight(TestCase):
+    def test_group_norm_weight_calls_torch_function(self):
+        class MyTensor():
+            def __torch_function__(self, func, types, args=(), kwargs=None):
+                return "called"
+        input = torch.randn(5, 32)
+        weight = MyTensor()
+        self.assertEqual(torch.group_norm(input, 4, weight), "called")
+
+
 if __name__ == '__main__':
     run_tests()
