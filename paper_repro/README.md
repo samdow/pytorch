@@ -1,6 +1,6 @@
 ## Installation
 Needs
-`pip install torch torchvision opacus`
+`pip install torch torchvision opacus dm-haiku`
 
 For some reason JAX can't find the CUDA 11.0 version of 1.0.71 (though it definitely exists?) so we have to install it like this for the A100s
 `pip install --upgrade jax jaxlib==1.0.70+cuda110 -f https://storage.googleapis.com/jax-releases/jax_releases.html`
