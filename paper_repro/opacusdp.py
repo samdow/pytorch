@@ -3,7 +3,6 @@ import torch
 from torch import nn, optim
 import torchvision.models as models
 from opacus.utils.module_modification import convert_batchnorm_modules
-import torch.expanded_weights
 
 import time
 import numpy as np
