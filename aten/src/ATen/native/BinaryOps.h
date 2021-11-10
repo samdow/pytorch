@@ -9,7 +9,20 @@ struct TensorIterator;
 struct TensorIteratorBase;
 }
 
-namespace at { namespace native {
+namespace at {
+at::Tensor add(const at::Tensor& self, const at::Tensor& other, const Scalar & alpha);
+at::Tensor& add_out(const at::Tensor& self, const at::Tensor& other, const Scalar & alpha, Tensor& out);
+
+namespace native {
+at::Tensor add(const at::Tensor& self, const Tensor& other, const Scalar & alpha);
+
+at::Tensor& add_(at::Tensor& self, const at::Tensor& other, const Scalar& alpha);
+
+at::Tensor& add_out(const at::Tensor& self, const Tensor& other, const Scalar& alpha, Tensor& out);
+
+at::Tensor wrapper_add_Tensor(const at::Tensor & self, const at::Tensor & other, const at::Scalar & alpha);
+at::Tensor & wrapper_add_out_out(const at::Tensor & self, const at::Tensor & other, const at::Scalar & alpha, at::Tensor & out);
+at::Tensor & wrapper_add__Tensor(at::Tensor & self, const at::Tensor & other, const at::Scalar & alpha);
 
 inline void alpha_check(const ScalarType dtype, const Scalar& alpha) {
   TORCH_CHECK(! alpha.isBoolean() || dtype == ScalarType::Bool,

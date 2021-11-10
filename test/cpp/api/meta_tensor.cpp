@@ -9,7 +9,7 @@ TEST(MetaTensorTest, MetaDeviceApi) {
   auto a = at::ones({4}, at::kFloat);
   auto b = at::ones({3, 4}, at::kFloat);
   // at::add() will return a meta tensor if its inputs are also meta tensors.
-  auto out_meta = at::add(a.to(c10::kMeta), b.to(c10::kMeta));
+  auto out_meta = at::sub(a.to(c10::kMeta), b.to(c10::kMeta));
 
   ASSERT_EQ(a.device(), c10::kCPU);
   ASSERT_EQ(b.device(), c10::kCPU);
@@ -24,7 +24,7 @@ TEST(MetaTensorTest, MetaNamespaceApi) {
   auto b = at::ones({3, 4}, at::kFloat);
   // The at::meta:: namespace take in tensors from any backend
   // and return a meta tensor.
-  auto out_meta = at::meta::add(a, b);
+  auto out_meta = at::meta::sub(a, b);
 
   ASSERT_EQ(a.device(), c10::kCPU);
   ASSERT_EQ(b.device(), c10::kCPU);
