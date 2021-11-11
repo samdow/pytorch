@@ -201,20 +201,20 @@ TEST(NVFuserTest, FusionShift2_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = shift(tv1, {-1, 0});
   fusion.addOutput(tv2);
 
   // make it a little more complex
-  auto tv3 = add(tv0, new Double(3));
-  auto tv4 = add(tv3, new Double(4));
+  auto tv3 = sub(tv0, new Double(3));
+  auto tv4 = sub(tv3, new Double(4));
   auto tv5 = shift(tv4, {-1, 0});
   auto tv6 = shift(tv4, {0, -1});
   auto tv7 = shift(tv4, {1, 0});
   auto tv8 = shift(tv4, {0, 0});
-  auto tv9 = add(tv5, tv6);
-  auto tv10 = add(tv9, tv7);
-  auto tv11 = add(tv10, tv8);
+  auto tv9 = sub(tv5, tv6);
+  auto tv10 = sub(tv9, tv7);
+  auto tv11 = sub(tv10, tv8);
   fusion.addOutput(tv11);
 
   for (auto tv : {tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8, tv9, tv10, tv11}) {
@@ -292,7 +292,7 @@ TEST(NVFuserTest, FusionShiftRightOfCA_CUDA) {
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = shift(tv1, {0, 1});
   fusion.addOutput(tv2);
 
@@ -323,10 +323,10 @@ TEST(NVFuserTest, FusionShiftLeftOfCA_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(1));
   auto tv3 = shift(tv2, {-1, 0});
-  auto tv4 = add(tv3, new Double(1));
+  auto tv4 = sub(tv3, new Double(1));
   fusion.addOutput(tv4);
 
   tv0->computeAt(tv4, -1);
@@ -342,7 +342,7 @@ TEST(NVFuserTest, FusionShiftSplit1_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = shift(tv1, {0, 1});
   auto tv3 = shift(tv1, {0, -2});
   fusion.addOutput(tv2);
@@ -400,16 +400,16 @@ TEST(NVFuserTest, FusionShiftSplit2_CUDA) {
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(1));
   auto tv3 = shift(tv2, {0, -1});
   auto tv4 = shift(tv2, {0, 1});
-  auto tv5 = add(tv3, tv4);
+  auto tv5 = sub(tv3, tv4);
   fusion.addOutput(tv5);
 
-  auto tv6 = add(tv0, new Double(1));
+  auto tv6 = sub(tv0, new Double(1));
   auto tv7 = shift(tv6, {0, 0});
-  auto tv8 = add(tv7, new Double(1));
+  auto tv8 = sub(tv7, new Double(1));
   fusion.addOutput(tv8);
 
   int split_factor = 4;
@@ -476,8 +476,8 @@ TEST(NVFuserTest, FusionShiftDoubleSplit_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(2));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(2));
   auto tv3 = shift(tv2, {0, 1});
   fusion.addOutput(tv3);
 
@@ -549,7 +549,7 @@ TEST(NVFuserTest, FusionShift3ptStencil_CUDA) {
   auto tv_out = tv0;
 
   for (auto tv : tvs) {
-    tv_out = add(tv_out, tv);
+    tv_out = sub(tv_out, tv);
   }
 
   tv_out = div(tv_out, new Double(tvs.size() + 1));
@@ -624,7 +624,7 @@ TEST(NVFuserTest, FusionShift5ptStencil_CUDA) {
   auto tv_out = tv0;
 
   for (auto tv : tvs) {
-    tv_out = add(tv_out, tv);
+    tv_out = sub(tv_out, tv);
   }
 
   tv_out = div(tv_out, new Double(tvs.size() + 1));
@@ -713,7 +713,7 @@ TEST(NVFuserTest, FusionShift9ptStencil_CUDA) {
   auto tv_out = tv0;
 
   for (auto tv : tvs) {
-    tv_out = add(tv_out, tv);
+    tv_out = sub(tv_out, tv);
   }
 
   tv_out = div(tv_out, new Double(tvs.size() + 1));
@@ -785,7 +785,7 @@ TEST(NVFuserTest, FusionShiftSmemBlocking_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = shift(tv1, {0, 1});
   fusion.addOutput(tv2);
 
@@ -854,7 +854,7 @@ TEST(NVFuserTest, FusionShift3ptStencilParallel_CUDA) {
   auto tv_out = tv0;
 
   for (auto tv : tvs) {
-    tv_out = add(tv_out, tv);
+    tv_out = sub(tv_out, tv);
   }
 
   tv_out = div(tv_out, new Double(tvs.size() + 1));
@@ -910,7 +910,7 @@ TEST(NVFuserTest, FusionShift5ptStencilParallel_CUDA) {
   auto tv_out = tv0;
 
   for (auto tv : tvs) {
-    tv_out = add(tv_out, tv);
+    tv_out = sub(tv_out, tv);
   }
 
   tv_out = div(tv_out, new Double(tvs.size() + 1));
@@ -967,7 +967,7 @@ TEST(NVFuserTest, FusionShiftMerge1_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = shift(tv1, {-1, 1});
   fusion.addOutput(tv2);
 
@@ -1026,10 +1026,10 @@ TEST(NVFuserTest, FusionShiftMerge2_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = shift(tv1, {1, -1});
   auto tv3 = shift(tv1, {-1, 1});
-  auto tv4 = add(tv2, tv3);
+  auto tv4 = sub(tv2, tv3);
   fusion.addOutput(tv4);
 
   int split_factor = 4;
@@ -1089,10 +1089,10 @@ TEST(NVFuserTest, FusionShiftGlobal_CUDA) {
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = shift(tv1, {0, 1});
   auto tv3 = shift(tv1, {-1, 0});
-  auto tv4 = add(tv2, tv3);
+  auto tv4 = sub(tv2, tv3);
   fusion.addOutput(tv4);
 
   tv1->split(-1, 4);
@@ -1153,8 +1153,8 @@ TEST(NVFuserTest, FusionShiftDoubleSplitMerge1_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(2));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(2));
   auto tv3 = shift(tv2, {0, 1});
   fusion.addOutput(tv3);
 
@@ -1212,8 +1212,8 @@ TEST(NVFuserTest, FusionShiftDoubleSplitMerge2_CUDA) {
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(2));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(2));
   auto tv3 = shift(tv2, {1, 1});
   fusion.addOutput(tv3);
 
@@ -1300,7 +1300,7 @@ TEST(NVFuserTest, FusionShift5ptStencilParallel1DThreadBlock_CUDA) {
   auto tv_out = tv0;
 
   for (auto tv : tvs) {
-    tv_out = add(tv_out, tv);
+    tv_out = sub(tv_out, tv);
   }
 
   tv_out = div(tv_out, new Double(tvs.size() + 1));
@@ -1444,7 +1444,7 @@ TEST(NVFuserTest, FusionShiftChain3_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = shift(tv1, {0, 1});
   auto tv3 = shift(tv2, {0, 1});
   fusion.addOutput(tv3);
@@ -1598,7 +1598,7 @@ TEST(NVFuserTest, FusionShift5ptStencilChain_CUDA) {
 
   auto tv_stencil1 = tv0;
   for (auto tv : tv_stencil1_shifts) {
-    tv_stencil1 = add(tv_stencil1, tv);
+    tv_stencil1 = sub(tv_stencil1, tv);
   }
 
   tv_stencil1 = div(tv_stencil1, new Double(tv_stencil1_shifts.size() + 1));
@@ -1611,7 +1611,7 @@ TEST(NVFuserTest, FusionShift5ptStencilChain_CUDA) {
 
   auto tv_stencil2 = tv_stencil1;
   for (auto tv : tv_stencil2_shifts) {
-    tv_stencil2 = add(tv_stencil2, tv);
+    tv_stencil2 = sub(tv_stencil2, tv);
   }
 
   tv_stencil2 = div(tv_stencil2, new Double(tv_stencil2_shifts.size() + 1));
@@ -1717,7 +1717,7 @@ TEST(NVFuserTest, FusionShiftReduction1_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = sum(tv1, {1});
   auto tv3 = shift(tv2, {1});
   fusion.addOutput(tv3);
@@ -1752,7 +1752,7 @@ TEST(NVFuserTest, FusionShiftReduction2_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = sum(tv1, {1});
   auto tv3 = shift(tv2, {1});
   fusion.addOutput(tv3);
@@ -1792,7 +1792,7 @@ TEST(NVFuserTest, FusionShiftRfactor1_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = sum(tv1, {1});
   auto tv3 = shift(tv2, {1});
   fusion.addOutput(tv3);
@@ -1838,7 +1838,7 @@ TEST(NVFuserTest, FusionShiftBcast1_CUDA) {
   fusion.addInput(tv1);
   auto tv2 = broadcast(tv0, {false, true});
   auto tv3 = shift(tv2, {0, 1});
-  auto tv4 = add(tv3, tv1);
+  auto tv4 = sub(tv3, tv1);
   fusion.addOutput(tv4);
 
   tv0->computeAt(tv4, -1);
@@ -1872,7 +1872,7 @@ TEST(NVFuserTest, FusionShiftBcast2_CUDA) {
   fusion.addInput(tv1);
   auto tv2 = broadcast(tv0, {false, true});
   auto tv3 = shift(tv2, {1, 0});
-  auto tv4 = add(tv3, tv1);
+  auto tv4 = sub(tv3, tv1);
   fusion.addOutput(tv4);
 
   tv4->split(0, 4);
@@ -1910,9 +1910,9 @@ TEST(NVFuserTest, FusionShiftBcast3_CUDA) {
   auto tv3 = shift(tv2, {1, 0});
   auto tv4 = shift(tv2, {0, 1});
   auto tv5 = shift(tv2, {-1, -1});
-  auto tv6 = add(tv3, tv4);
-  auto tv7 = add(tv6, tv5);
-  auto tv8 = add(tv7, tv1);
+  auto tv6 = sub(tv3, tv4);
+  auto tv7 = sub(tv6, tv5);
+  auto tv8 = sub(tv7, tv1);
   fusion.addOutput(tv8);
 
   tv8->split(0, 4);
@@ -1954,9 +1954,9 @@ TEST(NVFuserTest, FusionShiftSyncPlacement1_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv0, new Double(2));
-  auto tv3 = add(tv1, tv2);
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv0, new Double(2));
+  auto tv3 = sub(tv1, tv2);
   auto tv4 = shift(tv3, {0, 1});
   fusion.addOutput(tv4);
 
@@ -1985,7 +1985,7 @@ TEST(NVFuserTest, FusionShiftSyncPlacement1_CUDA) {
 
   auto t1 = t0 + 1;
   auto t2 = t0 + 2;
-  auto t3 = add(t1, t2);
+  auto t3 = sub(t1, t2);
   auto t4 = shift(t3, {0, 1});
 
   testValidate(&fusion, outputs, inputs, {t4}, __LINE__, __FILE__);
@@ -1998,9 +1998,9 @@ TEST(NVFuserTest, FusionShiftSyncPlacement2_CUDA) {
 
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv0, new Double(2));
-  auto tv3 = add(tv1, tv2);
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv0, new Double(2));
+  auto tv3 = sub(tv1, tv2);
   auto tv4 = shift(tv3, {1});
   fusion.addOutput(tv4);
 
@@ -2025,7 +2025,7 @@ TEST(NVFuserTest, FusionShiftSyncPlacement2_CUDA) {
 
   auto t1 = t0 + 1;
   auto t2 = t0 + 2;
-  auto t3 = add(t1, t2);
+  auto t3 = sub(t1, t2);
   auto t4 = shift(t3, {1});
 
   testValidate(&fusion, outputs, inputs, {t4}, __LINE__, __FILE__);
@@ -2037,8 +2037,8 @@ TEST(NVFuserTest, FusionShiftSyncPlacement3_CUDA) {
 
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(2));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(2));
   auto tv3 = shift(tv2, {1});
   fusion.addOutput(tv3);
 
@@ -2095,7 +2095,7 @@ TEST(NVFuserTest, FusionHorizontalDiffusion_CUDA) {
     if (sum_of_neighbors == nullptr) {
       sum_of_neighbors = inp_neighbor;
     } else {
-      sum_of_neighbors = add(sum_of_neighbors, inp_neighbor);
+      sum_of_neighbors = sub(sum_of_neighbors, inp_neighbor);
     }
   }
 
@@ -2134,7 +2134,7 @@ TEST(NVFuserTest, FusionHorizontalDiffusion_CUDA) {
   auto out =
       sub(inp,
           mul(coeff,
-              add(sub(flx0, shift(flx0, {0, 0, 1})),
+              sub(sub(flx0, shift(flx0, {0, 0, 1})),
                   sub(fly0, shift(fly0, {0, 1, 0})))));
 
   fusion.addOutput(out);
@@ -2371,7 +2371,7 @@ TEST(NVFuserTest, FusionGatherPadding2_CUDA) {
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
 
   auto tv2 = gather(tv1, window_shape, padding_width);
 

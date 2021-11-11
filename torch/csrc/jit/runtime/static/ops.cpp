@@ -237,7 +237,7 @@ Tensor& linear_out(
   }
   at::native::matmul_out(input, weight.t(), output);
   if (bias->defined()) {
-    at::cpu::add_(output, *bias);
+    at::cpu::sub_(output, *bias);
   }
   return output;
 }

@@ -2,19 +2,20 @@
 
 // ${generated_comment}
 
-#include <c10/core/Scalar.h>
-#include <ATen/Tensor.h>
-#include <c10/core/Storage.h>
-#include <ATen/core/Generator.h>
-#include <c10/util/Deprecated.h>
-#include <ATen/DeviceGuard.h>
-#include <c10/core/TensorOptions.h>
-#include <ATen/core/Reduction.h>
-#include <c10/util/Optional.h>
-#include <ATen/TensorUtils.h>
 #include <ATen/Context.h>
-#include <ATen/TracerMode.h>
+#include <ATen/DeviceGuard.h>
+#include <ATen/NativeFunctions.h>
 #include <ATen/Operators.h>
+#include <ATen/Tensor.h>
+#include <ATen/TensorUtils.h>
+#include <ATen/TracerMode.h>
+#include <ATen/core/Generator.h>
+#include <ATen/core/Reduction.h>
+#include <c10/core/Scalar.h>
+#include <c10/core/Storage.h>
+#include <c10/core/TensorOptions.h>
+#include <c10/util/Deprecated.h>
+#include <c10/util/Optional.h>
 
 ${static_dispatch_extra_headers}
 
@@ -42,6 +43,29 @@ namespace at {
 AT_FORALL_SCALAR_TYPES_AND3(Bool, Half, BFloat16, TENSOR)
 AT_FORALL_COMPLEX_TYPES(TENSOR)
 #undef TENSOR
+
+TORCH_API inline Tensor add(
+    const Tensor& self,
+    const Tensor& other,
+    const Scalar& alpha = 1) {
+  return at::native::add(self, other, alpha);
+}
+
+TORCH_API inline Tensor& add_out(
+    const Tensor& self,
+    const Tensor& other,
+    const Scalar& alpha,
+    Tensor& out) {
+  return at::native::add_out(self, other, alpha, out);
+}
+
+TORCH_API inline Tensor& add_out(
+    Tensor& out,
+    const Tensor& self,
+    const Tensor& other,
+    const Scalar& alpha = 1) {
+  return at::native::add_out(self, other, alpha, out);
+}
 
 ${function_definitions}
 

@@ -71,13 +71,13 @@ void SendContext() {
 void TestAdd(DeprecatedTypeProperties& type) {
   Tensor a = rand({3, 4}, type);
   Tensor b = rand({3, 4}, type);
-  Tensor c = add(a, add(a, b));
+  Tensor c = sub(a, sub(a, b));
   // TODO:0-dim Tensor d(3.f);
   Scalar d = 3.f;
   if (type.backend() == Backend::CPU && type.scalarType() == kHalf) {
-      ASSERT_TRUE(add(c, d).allclose(a + a + b + d, 1e-2));
+    ASSERT_TRUE(sub(c, d).allclose(a + a + b + d, 1e-2));
   } else {
-      ASSERT_TRUE(add(c, d).allclose(a + a + b + d));
+    ASSERT_TRUE(sub(c, d).allclose(a + a + b + d));
   }
 }
 
@@ -103,7 +103,7 @@ void TestLoadsOfAdds(DeprecatedTypeProperties& type) {
   Tensor d = ones({3, 4}, type);
   Tensor r = zeros({3, 4}, type);
   for (auto i = 0; i < 100000; i++) {
-    add_out(r, r, d);
+    sub_out(r, r, d);
   }
   auto end = std::chrono::high_resolution_clock::now();
   // TODO TEST PERF?
@@ -120,7 +120,7 @@ void TestLoadOfAddsWithCopy(DeprecatedTypeProperties& type) {
   Tensor d = ones({3, 4}, type);
   Tensor r = zeros({3, 4}, type);
   for (auto i = 0; i < 100000; i++) {
-    r = add(r, d);
+    r = sub(r, d);
   }
   auto end = std::chrono::high_resolution_clock::now();
   // TODO TEST PERF?
@@ -199,7 +199,7 @@ std::cout << (a == 10.) << " -- should be 1" << std::endl;
 
 void TestAddingAValueWithScalar(DeprecatedTypeProperties& type) {
   Tensor a = rand({4, 3}, type);
-  ASSERT_TRUE((ones({4, 3}, type) + a).equal(add(a, 1)));
+  ASSERT_TRUE((ones({4, 3}, type) + a).equal(sub(a, 1)));
 }
 
 void TestSelect(DeprecatedTypeProperties& type) {

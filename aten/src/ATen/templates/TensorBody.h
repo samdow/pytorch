@@ -232,6 +232,9 @@ class TORCH_API Tensor: public TensorBase {
   C10_DEPRECATED_MESSAGE("packed_accessor is deprecated, use packed_accessor32 or packed_accessor64 instead")
   GenericPackedTensorAccessor<T,N,PtrTraits,index_t> packed_accessor() && = delete;
 
+  at::Tensor add(const at::Tensor& other, const at::Scalar& alpha = 1) const;
+  at::Tensor& add_(const at::Tensor& other, const at::Scalar& alpha = 1) const;
+
   Tensor operator~() const;
   Tensor operator-() const;
   Tensor& operator+=(const Tensor & other);

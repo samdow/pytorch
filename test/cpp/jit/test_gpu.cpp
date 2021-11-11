@@ -121,11 +121,11 @@ TEST(NVFuserTest, IrGraphGenerator_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
 
-  TensorView* tv2 = add(tv0, new Double(3.141));
+  TensorView* tv2 = sub(tv0, new Double(3.141));
   TensorView* tv3 = broadcast(tv0, {false, true, false, true});
   TensorView* tv4 = reductionOp(BinaryOpType::Add, {2}, new Double(0), tv3);
   TensorView* tv5 = clamp(tv4, new Double(0.f), new Double(1.f));
-  TensorView* tv6 = add(tv2, tv2);
+  TensorView* tv6 = sub(tv2, tv2);
 
   // Another checkpoint before adding outputs
   TORCH_CHECK(!IrGraphGenerator::toGraphviz(
@@ -185,7 +185,7 @@ TEST(NVFuserTest, FusionExprEvalConstants_CUDA) {
   auto* b = new Int(3);
 
   checkIntValue(evaluator, neg(a), -7);
-  checkIntValue(evaluator, add(a, b), 10);
+  checkIntValue(evaluator, sub(a, b), 10);
   checkIntValue(evaluator, neg(mul(sub(a, b), div(a, b))), -8);
   checkIntValue(evaluator, mod(a, b), 1);
   checkIntValue(evaluator, ceilDiv(a, b), 3);
@@ -200,7 +200,7 @@ TEST(NVFuserTest, FusionExprEvalBindings_CUDA) {
 
   auto* a = new Int();
   auto* b = new Int();
-  auto* c = add(a, b);
+  auto* c = sub(a, b);
   auto* d = neg(ceilDiv(c, b));
   auto* e = new Int(0);
 
@@ -248,8 +248,8 @@ TEST(NVFuserTest, FusionExprEvalBasic_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  TensorView* tv2 = add(tv1, new Double(2.0));
-  TensorView* tv3 = add(tv0, tv2);
+  TensorView* tv2 = sub(tv1, new Double(2.0));
+  TensorView* tv3 = sub(tv0, tv2);
 
   fusion.addOutput(tv3);
 
@@ -301,11 +301,11 @@ TEST(NVFuserTest, FusionExprEvalComplex_CUDA) {
   fusion.addInput(tv0);
 
   TensorView* tv1 = mul(tv0, new Double(-1.0));
-  TensorView* tv2 = add(tv0, new Double(3.0));
+  TensorView* tv2 = sub(tv0, new Double(3.0));
   TensorView* tv3 = mul(tv0, new Double(2.0));
-  TensorView* tv4 = add(tv2, tv1);
-  TensorView* tv5 = add(tv4, tv3);
-  TensorView* tv6 = add(tv0, tv3);
+  TensorView* tv4 = sub(tv2, tv1);
+  TensorView* tv5 = sub(tv4, tv3);
+  TensorView* tv6 = sub(tv0, tv3);
 
   fusion.addOutput(tv5);
   fusion.addOutput(tv6);
@@ -356,8 +356,8 @@ TEST(NVFuserTest, FusionExprEvalPostLower_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  TensorView* tv2 = add(tv1, new Double(2.0));
-  TensorView* tv3 = add(tv0, tv2);
+  TensorView* tv2 = sub(tv1, new Double(2.0));
+  TensorView* tv3 = sub(tv0, tv2);
 
   fusion.addOutput(tv3);
 
@@ -372,8 +372,8 @@ TEST(NVFuserTest, FusionExprEvalPostLower_CUDA) {
   tv2->axis(-1)->parallelize(ParallelType::TIDx);
   tv3->axis(-1)->parallelize(ParallelType::TIDx);
 
-  auto* bid_x = add(tv3->axis(0)->extent(), new Int(0));
-  auto* tid_x = add(tv3->axis(-1)->extent(), new Int(0));
+  auto* bid_x = sub(tv3->axis(0)->extent(), new Int(0));
+  auto* tid_x = sub(tv3->axis(-1)->extent(), new Int(0));
 
   // Lower
   GpuLower gpulw(&fusion);
@@ -480,8 +480,8 @@ TEST(NVFuserTest, FusionClear_CUDA) {
     fusion.addInput(tv0);
     fusion.addInput(tv1);
 
-    TensorView* tv2 = add(tv1, new Double(2.0));
-    TensorView* tv3 = add(tv0, tv2);
+    TensorView* tv2 = sub(tv1, new Double(2.0));
+    TensorView* tv3 = sub(tv0, tv2);
 
     fusion.addOutput(tv3);
 
@@ -511,8 +511,8 @@ TEST(NVFuserTest, FusionClear_CUDA) {
   {
     TensorView* tv0 = makeSymbolicTensor(3);
     TensorView* tv1 = makeSymbolicTensor(3);
-    TensorView* tv2 = add(tv1, new Double(2.0));
-    TensorView* tv3 = add(tv0, tv2);
+    TensorView* tv2 = sub(tv1, new Double(2.0));
+    TensorView* tv3 = sub(tv0, tv2);
 
     fusion.addInput(tv0);
     fusion.addInput(tv1);
@@ -554,8 +554,8 @@ TEST(NVFuserTest, FusionCopy_CUDA) {
 
     auto tv0 = makeSymbolicTensor(3);
     auto tv1 = makeSymbolicTensor(3);
-    auto tv2 = add(tv1, new Double(2.0));
-    auto tv3 = sub(add(tv0, mul(tv2, tv2)), tv2);
+    auto tv2 = sub(tv1, new Double(2.0));
+    auto tv3 = sub(sub(tv0, mul(tv2, tv2)), tv2);
 
     original_fusion.addInput(tv0);
     original_fusion.addInput(tv1);
@@ -628,8 +628,8 @@ TEST(NVFuserTest, FusionMove_CUDA) {
 
     auto tv0 = makeSymbolicTensor(3);
     auto tv1 = makeSymbolicTensor(3);
-    auto tv2 = add(tv1, new Double(2.0));
-    auto tv3 = sub(add(tv0, mul(tv2, tv2)), tv2);
+    auto tv2 = sub(tv1, new Double(2.0));
+    auto tv3 = sub(sub(tv0, mul(tv2, tv2)), tv2);
 
     fusion.addInput(tv0);
     fusion.addInput(tv1);
@@ -706,7 +706,7 @@ TEST(NVFuserTest, FusionSimpleArith_CUDA) {
 
     Double* d1 = new Double(1.f);
     Double* d2 = new Double(2.f);
-    add(d1, d2);
+    sub(d1, d2);
     ss2 << fusion2;
   }
 
@@ -724,7 +724,7 @@ TEST(NVFuserTest, FusionSimpleTypePromote_CUDA) {
 
   Double* d4 = new Double{4.f};
   Int* i1 = new Int{3};
-  auto d5 = add(d4, i1);
+  auto d5 = sub(d4, i1);
 
   TORCH_CHECK(d5->getDataType() == DataType::Double);
 }
@@ -765,9 +765,9 @@ TEST(NVFuserTest, FusionTopoSort_CUDA) {
   FusionGuard fg(&fusion);
 
   // e0: v3, v2 = dummy(v1, v0)
-  // e1: v4     =   add(v3, v2)
-  // e2: v5     =   add(v2, v4)
-  // e3: v6     =   add(v5, v5)
+  // e1: v4     =   sub(v3, v2)
+  // e2: v5     =   sub(v2, v4)
+  // e3: v6     =   sub(v5, v5)
   Double* v0 = new Double{1.f};
   Double* v1 = new Double{2.f};
   Double* v2 = new Double();
@@ -1061,21 +1061,21 @@ TEST(NVFuserTest, FusionDependency_CUDA) {
 
   Double* d0 = new Double(0.f);
   Double* d1 = new Double(1.f);
-  auto d2 = add(d0, d1);
+  auto d2 = sub(d0, d1);
 
-  auto d3 = add(d2, d2);
+  auto d3 = sub(d2, d2);
 
   Double* d4 = new Double(4.f);
   Double* d5 = new Double(5.f);
-  auto d6 = add(d4, d5);
+  auto d6 = sub(d4, d5);
 
   Double* d7 = new Double(7.f);
   Double* d8 = new Double(8.f);
-  auto d9 = add(d7, d8);
+  auto d9 = sub(d7, d8);
 
-  auto d10 = add(d6, d9);
+  auto d10 = sub(d6, d9);
 
-  auto d11 = add(d3, d10);
+  auto d11 = sub(d3, d10);
 
   TORCH_CHECK(DependencyCheck::isDependencyOf(d0, d11));
   TORCH_CHECK(DependencyCheck::isDependencyOf(d1, d11));
@@ -1247,7 +1247,7 @@ TEST(NVFuserTest, FusionForLoop_CUDA) {
 
   auto ID0 = new kir::IterDomain(new IterDomain(new Int(0), new Int(8)));
 
-  TensorView* TV2 = add(TV0, TV1);
+  TensorView* TV2 = sub(TV0, TV1);
   BinaryOp* op = static_cast<BinaryOp*>(TV2->definition();
   fusion.addOutput(TV2);
 
@@ -1275,8 +1275,8 @@ TEST(NVFuserTest, FusionOuterSplit_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(3);
 
   new BinaryOp(BinaryOpType::Add, tv0, new Double(0.0), new Double(1.0));
-  TensorView* tv1 = add(tv0, new Double(2.0));
-  TensorView* tv2 = add(tv1, new Double(3.0));
+  TensorView* tv1 = sub(tv0, new Double(2.0));
+  TensorView* tv2 = sub(tv1, new Double(3.0));
   fusion.addOutput(tv2);
 
   //[I0, I1, I2]
@@ -1313,8 +1313,8 @@ TEST(NVFuserTest, FusionCodeGen_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(3);
 
   new BinaryOp(BinaryOpType::Add, tv0, new Double(0.0), new Double(1.0));
-  TensorView* tv1 = add(tv0, new Double(2.0));
-  TensorView* tv2 = add(tv1, new Double(3.0));
+  TensorView* tv1 = sub(tv0, new Double(2.0));
+  TensorView* tv2 = sub(tv1, new Double(3.0));
   fusion.addOutput(tv2);
 
   //[I0, I1, I2]
@@ -1349,8 +1349,8 @@ TEST(NVFuserTest, FusionCodeGen2_CUDA) {
 
   TensorView* tv0 = makeSymbolicTensor(3);
   TensorView* tv1 = makeSymbolicTensor(3);
-  TensorView* tv2 = add(tv1, new Double(2.0));
-  TensorView* tv3 = add(tv0, tv2);
+  TensorView* tv2 = sub(tv1, new Double(2.0));
+  TensorView* tv3 = sub(tv0, tv2);
 
   fusion.addInput(tv0);
   fusion.addInput(tv1);
@@ -1401,8 +1401,8 @@ TEST(NVFuserTest, FusionSimplePWise_CUDA) {
 
   // Do math with it, it returns a `Val*` but can be static_casted back to
   // TensorView
-  TensorView* tv2 = add(tv1, new Double(2.0));
-  TensorView* tv3 = add(tv0, tv2);
+  TensorView* tv2 = sub(tv1, new Double(2.0));
+  TensorView* tv3 = sub(tv0, tv2);
 
   // Register your outputs
   fusion.addOutput(tv3);
@@ -1456,8 +1456,8 @@ TEST(NVFuserTest, FusionExecKernel_CUDA) {
 
   // Do math with it, it returns a `Val*` but can be static_casted back to
   // TensorView
-  TensorView* tv2 = add(tv1, new Double(2.0));
-  TensorView* tv3 = add(tv0, tv2);
+  TensorView* tv2 = sub(tv1, new Double(2.0));
+  TensorView* tv3 = sub(tv0, tv2);
 
   // Register your outputs
   fusion.addOutput(tv3);
@@ -1513,12 +1513,12 @@ TEST(NVFuserTest, FusionAdvancedComputeAt1_CUDA) {
 
   TensorView* tv1 = mul(tv0, new Double(0.5));
   TensorView* tv2 = mul(tv1, new Double(-1.0));
-  TensorView* tv3 = add(tv1, new Double(3.0));
+  TensorView* tv3 = sub(tv1, new Double(3.0));
   TensorView* tv4 = mul(tv1, new Double(2.0));
-  TensorView* tv5 = add(tv3, tv2);
+  TensorView* tv5 = sub(tv3, tv2);
 
-  TensorView* tv6 = add(tv5, tv4);
-  TensorView* tv7 = add(tv1, tv4);
+  TensorView* tv6 = sub(tv5, tv4);
+  TensorView* tv7 = sub(tv1, tv4);
 
   fusion.addOutput(tv6);
   fusion.addOutput(tv7);
@@ -1562,11 +1562,11 @@ TEST(NVFuserTest, FusionAdvancedComputeAt1_CUDA) {
 
   auto t1 = aten_input.mul({0.5});
   auto t2 = t1.mul({-1.0});
-  auto t3 = t1.add({3.0});
+  auto t3 = t1.sub({3.0});
   auto t4 = t1.mul({2.0});
-  auto t5 = t3.add(t2);
-  auto t6 = t5.add(t4);
-  auto t7 = t1.add(t4);
+  auto t5 = t3.sub(t2);
+  auto t6 = t5.sub(t4);
+  auto t7 = t1.sub(t4);
 
   std::vector<at::Tensor> aten_outputs = {t6, t7};
   std::vector<at::Tensor> cg_outputs = {
@@ -1595,12 +1595,12 @@ TEST(NVFuserTest, FusionAdvancedComputeAt2_CUDA) {
   fusion.addInput(tv0);
 
   TensorView* tv1 = mul(tv0, new Double(-1.0));
-  TensorView* tv2 = add(tv0, new Double(3.0));
+  TensorView* tv2 = sub(tv0, new Double(3.0));
   TensorView* tv3 = mul(tv0, new Double(2.0));
-  TensorView* tv4 = add(tv2, tv1);
+  TensorView* tv4 = sub(tv2, tv1);
 
-  TensorView* tv5 = add(tv4, tv3);
-  TensorView* tv6 = add(tv5, tv3);
+  TensorView* tv5 = sub(tv4, tv3);
+  TensorView* tv6 = sub(tv5, tv3);
 
   fusion.addOutput(tv5);
   fusion.addOutput(tv6);
@@ -1628,11 +1628,11 @@ TEST(NVFuserTest, FusionAdvancedComputeAt2_CUDA) {
   at::Tensor input = at::randn({129, 127}, options);
 
   auto t1 = input.mul({-1.0});
-  auto t2 = input.add({3.0});
+  auto t2 = input.sub({3.0});
   auto t3 = input.mul({2.0});
-  auto t4 = t2.add(t1);
-  auto t5 = t4.add(t3);
-  auto t6 = t5.add(t3);
+  auto t4 = t2.sub(t1);
+  auto t5 = t4.sub(t3);
+  auto t6 = t5.sub(t3);
 
   std::vector<at::Tensor> aten_outputs = {t5, t6};
 
@@ -1722,7 +1722,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAt4_CUDA) {
   fusion.addInput(tv3);
 
   TensorView* tv4 = sub(tv2, tv3);
-  TensorView* tv5 = add(tv1, tv4);
+  TensorView* tv5 = sub(tv1, tv4);
   TensorView* tv6 = sub(tv5, tv0);
 
   fusion.addOutput(tv6);
@@ -1757,7 +1757,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAt4_CUDA) {
   at::Tensor t3 = at::rand_like(t0, options);
 
   auto t4 = t2.sub(t3);
-  auto t5 = t1.add(t4);
+  auto t5 = t1.sub(t4);
   auto aten_output = t5.sub(t0);
 
   std::vector<IValue> aten_inputs = {t0, t1, t2, t3};
@@ -1782,7 +1782,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAt5_CUDA) {
   fusion.addInput(tv0);
   TensorView* tv1 = makeSymbolicTensor(2);
   fusion.addInput(tv1);
-  TensorView* tv2 = add(tv0, new Double(2.0));
+  TensorView* tv2 = sub(tv0, new Double(2.0));
   TensorView* tv3 = mul(tv1, tv2);
   fusion.addOutput(tv3);
 
@@ -1797,7 +1797,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAt5_CUDA) {
   at::Tensor t0 = at::randn({63, 65}, options);
   at::Tensor t1 = at::rand_like(t0, options);
 
-  auto t2 = t0.add(2.0);
+  auto t2 = t0.sub(2.0);
   auto aten_output = t1.mul(t2);
 
   std::vector<IValue> aten_inputs = {t0, t1};
@@ -1818,7 +1818,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAt6_CUDA) {
   fusion.addInput(tv0);
   TensorView* tv1 = makeSymbolicTensor(2);
   fusion.addInput(tv1);
-  TensorView* tv2 = add(tv0, new Double(2.0));
+  TensorView* tv2 = sub(tv0, new Double(2.0));
   TensorView* tv3 = mul(tv1, tv2);
   fusion.addOutput(tv3);
 
@@ -1836,7 +1836,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAt6_CUDA) {
   at::Tensor t0 = at::randn({63, 65}, options);
   at::Tensor t1 = at::rand_like(t0, options);
 
-  auto t2 = t0.add(2.0);
+  auto t2 = t0.sub(2.0);
   auto aten_output = t1.mul(t2);
 
   std::vector<IValue> aten_inputs = {t0, t1};
@@ -1856,14 +1856,14 @@ TEST(NVFuserTest, FusionAdvancedComputeAt7_CUDA) {
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1.0));
+  auto tv1 = sub(tv0, new Double(1.0));
 
   auto tv2 = makeSymbolicTensor(1);
   fusion.addInput(tv2);
 
-  auto tv3 = add(tv2, new Double(3.0));
+  auto tv3 = sub(tv2, new Double(3.0));
 
-  auto tv4 = add(tv1, tv3);
+  auto tv4 = sub(tv1, tv3);
   fusion.addOutput(tv4);
 
   auto tv5 = broadcast(tv1, {false, true});
@@ -1904,9 +1904,9 @@ TEST(NVFuserTest, FusionAdvancedComputeAt7_CUDA) {
   auto t2 = at::randn({numel_x}, options);
   auto t6 = at::randn({numel_x, numel_y}, options);
 
-  auto t1 = t0.add(1.0);
-  auto t3 = t2.add(3.0);
-  auto t4 = t1.add(t3);
+  auto t1 = t0.sub(1.0);
+  auto t3 = t2.sub(3.0);
+  auto t4 = t1.sub(t3);
   auto t5 = t1.unsqueeze(1);
   auto t7 = t5.mul(t6);
 
@@ -1926,14 +1926,14 @@ TEST(NVFuserTest, FusionAdvancedComputeAt8_CUDA) {
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1.0));
+  auto tv1 = sub(tv0, new Double(1.0));
 
   auto tv2 = makeSymbolicTensor(1);
   fusion.addInput(tv2);
 
-  auto tv3 = add(tv2, new Double(3.0));
+  auto tv3 = sub(tv2, new Double(3.0));
 
-  auto tv4 = add(tv1, tv3);
+  auto tv4 = sub(tv1, tv3);
   fusion.addOutput(tv4);
 
   auto tv5 = broadcast(tv1, {false, true});
@@ -1969,9 +1969,9 @@ TEST(NVFuserTest, FusionAdvancedComputeAt8_CUDA) {
   auto t2 = at::randn({numel_x}, options);
   auto t6 = at::randn({numel_x, numel_y}, options);
 
-  auto t1 = t0.add(1.0);
-  auto t3 = t2.add(3.0);
-  auto t4 = t1.add(t3);
+  auto t1 = t0.sub(1.0);
+  auto t3 = t2.sub(3.0);
+  auto t4 = t1.sub(t3);
   auto t5 = t1.unsqueeze(1);
   auto t7 = t5.mul(t6);
 
@@ -2001,12 +2001,12 @@ TEST(NVFuserTest, FusionAdvancedComputeWith1_CUDA) {
 
   TensorView* tv1 = mul(tv0, new Double(0.5));
   TensorView* tv2 = mul(tv1, new Double(-1.0));
-  TensorView* tv3 = add(tv1, new Double(3.0));
+  TensorView* tv3 = sub(tv1, new Double(3.0));
   TensorView* tv4 = mul(tv1, new Double(2.0));
-  TensorView* tv5 = add(tv3, tv2);
+  TensorView* tv5 = sub(tv3, tv2);
 
-  TensorView* tv6 = add(tv5, tv4);
-  TensorView* tv7 = add(tv1, tv4);
+  TensorView* tv6 = sub(tv5, tv4);
+  TensorView* tv7 = sub(tv1, tv4);
 
   fusion.addOutput(tv6);
   fusion.addOutput(tv7);
@@ -2051,11 +2051,11 @@ TEST(NVFuserTest, FusionAdvancedComputeWith1_CUDA) {
 
   auto t1 = aten_input.mul({0.5});
   auto t2 = t1.mul({-1.0});
-  auto t3 = t1.add({3.0});
+  auto t3 = t1.sub({3.0});
   auto t4 = t1.mul({2.0});
-  auto t5 = t3.add(t2);
-  auto t6 = t5.add(t4);
-  auto t7 = t1.add(t4);
+  auto t5 = t3.sub(t2);
+  auto t6 = t5.sub(t4);
+  auto t7 = t1.sub(t4);
 
   std::vector<at::Tensor> aten_outputs = {t6, t7};
   std::vector<at::Tensor> cg_outputs = {
@@ -2084,12 +2084,12 @@ TEST(NVFuserTest, FusionAdvancedComputeWith2_CUDA) {
   fusion.addInput(tv0);
 
   TensorView* tv1 = mul(tv0, new Double(-1.0));
-  TensorView* tv2 = add(tv0, new Double(3.0));
+  TensorView* tv2 = sub(tv0, new Double(3.0));
   TensorView* tv3 = mul(tv0, new Double(2.0));
-  TensorView* tv4 = add(tv2, tv1);
+  TensorView* tv4 = sub(tv2, tv1);
 
-  TensorView* tv5 = add(tv4, tv3);
-  TensorView* tv6 = add(tv5, tv3);
+  TensorView* tv5 = sub(tv4, tv3);
+  TensorView* tv6 = sub(tv5, tv3);
 
   fusion.addOutput(tv5);
   fusion.addOutput(tv6);
@@ -2117,11 +2117,11 @@ TEST(NVFuserTest, FusionAdvancedComputeWith2_CUDA) {
   at::Tensor input = at::randn({129, 127}, options);
 
   auto t1 = input.mul({-1.0});
-  auto t2 = input.add({3.0});
+  auto t2 = input.sub({3.0});
   auto t3 = input.mul({2.0});
-  auto t4 = t2.add(t1);
-  auto t5 = t4.add(t3);
-  auto t6 = t5.add(t3);
+  auto t4 = t2.sub(t1);
+  auto t5 = t4.sub(t3);
+  auto t6 = t5.sub(t3);
 
   std::vector<at::Tensor> aten_outputs = {t5, t6};
 
@@ -2216,7 +2216,7 @@ TEST(NVFuserTest, FusionAdvancedComputeWith4_CUDA) {
   fusion.addInput(tv3);
 
   TensorView* tv4 = sub(tv2, tv3);
-  TensorView* tv5 = add(tv1, tv4);
+  TensorView* tv5 = sub(tv1, tv4);
   TensorView* tv6 = sub(tv5, tv0);
 
   fusion.addOutput(tv6);
@@ -2250,7 +2250,7 @@ TEST(NVFuserTest, FusionAdvancedComputeWith4_CUDA) {
   at::Tensor t3 = at::rand_like(t0, options);
 
   auto t4 = t2.sub(t3);
-  auto t5 = t1.add(t4);
+  auto t5 = t1.sub(t4);
   auto aten_output = t5.sub(t0);
 
   std::vector<IValue> aten_inputs = {t0, t1, t2, t3};
@@ -2275,7 +2275,7 @@ TEST(NVFuserTest, FusionAdvancedComputeWith5_CUDA) {
   fusion.addInput(tv0);
   TensorView* tv1 = makeSymbolicTensor(2);
   fusion.addInput(tv1);
-  TensorView* tv2 = add(tv0, new Double(2.0));
+  TensorView* tv2 = sub(tv0, new Double(2.0));
   TensorView* tv3 = mul(tv1, tv2);
   fusion.addOutput(tv3);
 
@@ -2290,7 +2290,7 @@ TEST(NVFuserTest, FusionAdvancedComputeWith5_CUDA) {
   at::Tensor t0 = at::randn({63, 65}, options);
   at::Tensor t1 = at::rand_like(t0, options);
 
-  auto t2 = t0.add(2.0);
+  auto t2 = t0.sub(2.0);
   auto aten_output = t1.mul(t2);
 
   std::vector<IValue> aten_inputs = {t0, t1};
@@ -2311,7 +2311,7 @@ TEST(NVFuserTest, FusionAdvancedComputeWith6_CUDA) {
   fusion.addInput(tv0);
   TensorView* tv1 = makeSymbolicTensor(2);
   fusion.addInput(tv1);
-  TensorView* tv2 = add(tv0, new Double(2.0));
+  TensorView* tv2 = sub(tv0, new Double(2.0));
   TensorView* tv3 = mul(tv1, tv2);
   fusion.addOutput(tv3);
 
@@ -2329,7 +2329,7 @@ TEST(NVFuserTest, FusionAdvancedComputeWith6_CUDA) {
   at::Tensor t0 = at::randn({63, 65}, options);
   at::Tensor t1 = at::rand_like(t0, options);
 
-  auto t2 = t0.add(2.0);
+  auto t2 = t0.sub(2.0);
   auto aten_output = t1.mul(t2);
 
   std::vector<IValue> aten_inputs = {t0, t1};
@@ -2431,7 +2431,7 @@ TEST(NVFuserTest, FusionComputeAtCommonConsumer1_CUDA) {
   TensorView* tv1 = mul(tv0, new Double(0.5));
   TensorView* tv2 = mul(tv1, new Double(-1.0));
   TensorView* tv3 = mul(tv1, new Double(-2.0));
-  TensorView* tv4 = add(tv2, tv3);
+  TensorView* tv4 = sub(tv2, tv3);
   TensorView* tv5 = mul(tv4, new Double(5.0));
   fusion.addOutput(tv3);
   fusion.addOutput(tv4);
@@ -2508,8 +2508,8 @@ TEST(NVFuserTest, FusionComputeAtCommonConsumer2_CUDA) {
   TensorView* tv1 = mul(tv0, new Double(0.5));
   TensorView* tv2 = mul(tv1, new Double(-1.0));
   TensorView* tv3 = mul(tv2, new Double(-1.0));
-  TensorView* tv4 = add(tv1, new Double(4.0));
-  TensorView* tv5 = add(tv3, tv4);
+  TensorView* tv4 = sub(tv1, new Double(4.0));
+  TensorView* tv5 = sub(tv3, tv4);
 
   fusion.addOutput(tv5);
 
@@ -2562,7 +2562,7 @@ TEST(NVFuserTest, FusionComputeAtCommonConsumer2_CUDA) {
   auto t1 = aten_input.mul({0.5});
   auto t2 = t1.mul({-1.0});
   auto t3 = t2.mul({-1.0});
-  auto t4 = t1.add({4.0});
+  auto t4 = t1.sub({4.0});
   auto aten_output = t3 + t4;
 
   at::Tensor cg_output = at::empty_like(aten_input, options);
@@ -2593,9 +2593,9 @@ TEST(NVFuserTest, FusionComputeAtCommonConsumer3_CUDA) {
   TensorView* tv1 = mul(tv0, new Double(0.5));
   TensorView* tv2 = mul(tv1, new Double(-1.0));
   TensorView* tv3 = mul(tv2, new Double(-1.0));
-  TensorView* tv4 = add(tv1, new Double(4.0));
-  TensorView* tv5 = add(tv3, tv4);
-  TensorView* tv6 = add(tv1, new Double(6.0));
+  TensorView* tv4 = sub(tv1, new Double(4.0));
+  TensorView* tv5 = sub(tv3, tv4);
+  TensorView* tv6 = sub(tv1, new Double(6.0));
 
   fusion.addOutput(tv5);
   fusion.addOutput(tv6);
@@ -2649,9 +2649,9 @@ TEST(NVFuserTest, FusionComputeAtCommonConsumer3_CUDA) {
   auto t1 = aten_input.mul({0.5});
   auto t2 = t1.mul({-1.0});
   auto t3 = t2.mul({-1.0});
-  auto t4 = t1.add({4.0});
+  auto t4 = t1.sub({4.0});
   auto t5 = t3 + t4;
-  auto t6 = t1.add({6.0});
+  auto t6 = t1.sub({6.0});
 
   std::vector<at::Tensor> aten_outputs = {t5, t6};
   std::vector<at::Tensor> cg_outputs = {
@@ -2683,7 +2683,7 @@ TEST(NVFuserTest, FusionComputeAtNoCommonConsumer_CUDA) {
   TensorView* tv1 = mul(tv0, new Double(0.5));
   TensorView* tv2 = mul(tv1, new Double(-1.0));
   TensorView* tv3 = mul(tv1, new Double(-2.0));
-  TensorView* tv4 = add(tv2, tv3);
+  TensorView* tv4 = sub(tv2, tv3);
   TensorView* tv5 = mul(tv4, new Double(5.0));
   // Notice that tv6 is not a consumer of tv4.
   TensorView* tv6 = mul(tv1, new Double(6.0));
@@ -2773,10 +2773,10 @@ TEST(NVFuserTest, FusionBCastConcretizeBasic_CUDA) {
   // tv2*: [B I I]
   auto tv2_0 = broadcast(tv0, {true, false, false});
   auto tv2_1 = broadcast(tv0, {true, false, false});
-  auto tv2 = add(tv2_0, tv2_1);
+  auto tv2 = sub(tv2_0, tv2_1);
 
   // tv3: [I I I]
-  auto tv3 = add(tv2, tv1);
+  auto tv3 = sub(tv2, tv1);
 
   fusion.addOutput(tv3);
 
@@ -2801,7 +2801,7 @@ TEST(NVFuserTest, FusionBCastConcretizeRfactor_CUDA) {
   //[B,I,R]
   auto tv3 = sum(tv2, {2});
 
-  auto tv5 = add(tv3, tv1);
+  auto tv5 = sub(tv3, tv1);
 
   fusion.addInput(tv0);
   fusion.addInput(tv1);
@@ -2908,7 +2908,7 @@ TEST(NVFuserTest, FusionRootMappingBasic_CUDA) {
   fusion.addInput(tv1);
   auto tv3 = broadcast(tv0, {true, false, false});
   auto tv4 = broadcast(tv1, {false, true, false});
-  auto tv5 = add(tv3, tv4);
+  auto tv5 = sub(tv3, tv4);
   fusion.addOutput(tv5);
 
   checkIdMapped(
@@ -2962,7 +2962,7 @@ TEST(NVFuserTest, FusionRootMappingRfactor_CUDA) {
 
   //[I,I,R]
   auto tv2 = sum(tv1, {2});
-  auto tv3 = add(tv2, tv0);
+  auto tv3 = sub(tv2, tv0);
 
   fusion.addInput(tv0);
   fusion.addInput(tv1);
@@ -3069,7 +3069,7 @@ TEST(NVFuserTest, FusionRootMappingReductionDependency2_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(2);
   auto tv1 = sum(tv0, {1});
   auto tv2 = broadcast(tv1, {false, true});
-  auto tv3 = add(tv0, tv2);
+  auto tv3 = sub(tv0, tv2);
   fusion.addOutput(tv3);
 
   checkIdMapped(
@@ -3132,7 +3132,7 @@ TEST(NVFuserTest, FusionRootMappingReductionDependency4_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(2);
   auto tv1 = sum(tv0, {1});
   auto tv2 = broadcast(tv1, {false, true});
-  auto tv3 = add(tv0, tv2);
+  auto tv3 = sub(tv0, tv2);
   fusion.addOutput(tv3);
 
   tv1->split(-1, 4);
@@ -3176,11 +3176,11 @@ TEST(NVFuserTest, FusionRootMappingReductionDependency5_CUDA_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = sum(tv1, {1});
   auto tv3 = broadcast(tv2, {false, true});
-  auto tv4 = add(tv0, tv3);
-  auto tv5 = add(tv4, tv1);
+  auto tv4 = sub(tv0, tv3);
+  auto tv5 = sub(tv4, tv1);
   fusion.addOutput(tv5);
 
   checkIdMapped(
@@ -3234,11 +3234,11 @@ TEST(NVFuserTest, FusionRootMappingReductionDependency6_CUDA_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = sum(tv1, {1});
   auto tv3 = broadcast(tv2, {false, true});
-  auto tv4 = add(tv0, tv3);
-  auto tv5 = add(tv4, tv1);
+  auto tv4 = sub(tv0, tv3);
+  auto tv5 = sub(tv4, tv1);
   fusion.addOutput(tv5);
 
   tv2->split(1, 4);
@@ -3309,7 +3309,7 @@ TEST(NVFuserTest, FusionRootMappingMultipleBroadcast_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(1);
   auto tv1 = broadcast(tv0, {false, true});
   auto tv2 = broadcast(tv0, {true, false});
-  auto tv3 = add(tv1, tv2);
+  auto tv3 = sub(tv1, tv2);
   fusion.addOutput(tv3);
 
   // tv0 cannot be mapped with the consumers as it would mean its only
@@ -3385,9 +3385,9 @@ TEST(NVFuserTest, FusionRootMappingBroadcastNonUniqueSize_CUDA) {
   auto tv2 = makeSymbolicTensor(2);
   fusion.addInput(tv2);
   auto tv3 = broadcast(tv0, {false, true});
-  auto tv4 = add(tv1, tv3);
+  auto tv4 = sub(tv1, tv3);
   fusion.addOutput(tv4);
-  auto tv5 = add(tv2, tv3);
+  auto tv5 = sub(tv2, tv3);
   fusion.addOutput(tv5);
 
   // Broadcast domains can be used with multiple domains with
@@ -3513,7 +3513,7 @@ TEST(NVFuserTest, FusionRootMappingTrivialReduction_CUDA) {
 
   auto tv2 = broadcast(tv0, {true, false});
   auto tv3 = sum(tv2, {0});
-  auto tv4 = add(tv2, tv1);
+  auto tv4 = sub(tv2, tv1);
 
   fusion.addOutput(tv3);
   fusion.addOutput(tv4);
@@ -3551,10 +3551,10 @@ TEST(NVFuserTest, FusionComputeAtFailDueToRootMapping_CUDA) {
 
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = broadcast(tv1, {true, false});
   auto tv3 = broadcast(tv1, {false, true});
-  auto tv4 = add(tv2, tv3);
+  auto tv4 = sub(tv2, tv3);
   fusion.addOutput(tv4);
 
   // computeAt should fail as there is no valid root mapping.
@@ -3582,7 +3582,7 @@ TEST(NVFuserTest, FusionScalarInputs_CUDA) {
   Val* d5 = sub(d2, d3);
 
   TensorView* tv2 = sub(tv1, d4);
-  TensorView* tv3 = add(tv0, d5);
+  TensorView* tv3 = sub(tv0, d5);
   TensorView* tv4 = mul(tv3, tv2);
 
   fusion.addOutput(tv4);
@@ -3627,7 +3627,7 @@ TEST(NVFuserTest, FusionScalarInputs_CUDA) {
   at::Tensor t1 = at::rand_like(t0, options);
 
   auto t2 = t1.sub(fl4);
-  auto t3 = t0.add(fl5);
+  auto t3 = t0.sub(fl5);
   auto aten_output = t3.mul(t2);
 
   at::Tensor cg_output = at::empty_like(t0, options);
@@ -3664,8 +3664,8 @@ TEST(NVFuserTest, FusionLoopUnroll_CUDA) {
 
   // Do math with it, it returns a `Val*` but can be static_casted back to
   // TensorView
-  TensorView* tv2 = add(tv1, new Double(2.0));
-  TensorView* tv3 = add(tv0, tv2);
+  TensorView* tv2 = sub(tv1, new Double(2.0));
+  TensorView* tv3 = sub(tv0, tv2);
 
   // Register your outputs
   fusion.addOutput(tv3);
@@ -3699,7 +3699,7 @@ TEST(NVFuserTest, FusionLoopUnroll_CUDA) {
   fe.compileFusion(&fusion);
   auto outputs = fe.runFusion({input0, input1});
 
-  TORCH_CHECK(outputs[0].equal(input0.add(input1.add(2.0))));
+  TORCH_CHECK(outputs[0].equal(input0.sub(input1.sub(2.0))));
 }
 
 /*
@@ -4054,7 +4054,7 @@ TEST(NVFuserTest, FusionBinaryOps_CUDA) {
         /*name*/ "add_alpha",
         /*Aten Func   */
         [](std::array<IValue, 3>& vals) {
-          return at::add(
+          return at::sub(
               vals[0].toTensor(), vals[1].toTensor(), vals[2].toScalar());
         },
         /*JIT  Func   */ static_cast<Val* (*)(Val*, Val*, Val*)>(&add_alpha),
@@ -4420,7 +4420,7 @@ TEST(NVFuserTest, FusionReduction4_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(2);
   TensorView* tv1 = makeSymbolicTensor(2);
 
-  TensorView* tv2 = add(tv0, tv1);
+  TensorView* tv2 = sub(tv0, tv1);
   // tv2[I0, I1] = tv0[I0, I1] + tv1[I0, I1]
 
   fusion.addInput(tv0);
@@ -4471,7 +4471,7 @@ TEST(NVFuserTest, FusionReduction4_CUDA) {
   fe.compileFusion(&fusion);
   auto cg_outputs = fe.runFusion({t0, t1, t4});
 
-  auto t2 = t0.add(t1);
+  auto t2 = t0.sub(t1);
   auto t3 = t2.to(at::kDouble).sum({1});
   auto aten_output = t3.mul(t4);
 
@@ -4705,7 +4705,7 @@ TEST(NVFuserTest, FusionReductionOuterSplit_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(2);
   TensorView* tv1 = makeSymbolicTensor(2);
 
-  TensorView* tv2 = add(tv0, tv1);
+  TensorView* tv2 = sub(tv0, tv1);
   // tv2[I0, I1] = tv0[I0, I1] + tv1[I0, I1]
 
   fusion.addInput(tv0);
@@ -4754,7 +4754,7 @@ TEST(NVFuserTest, FusionReductionOuterSplit_CUDA) {
   fe.compileFusion(&fusion);
   auto cg_outputs = fe.runFusion({t0, t1, t4});
 
-  auto t2 = t0.add(t1);
+  auto t2 = t0.sub(t1);
   auto t3 = t2.to(at::kDouble).sum({1});
   auto aten_output = t3.mul(t4);
 
@@ -4774,10 +4774,10 @@ TEST(NVFuserTest, FusionBranches_CUDA) {
   fusion.addInput(tv1);
   fusion.addInput(tv2);
 
-  auto tv3 = add(tv0, new Double(1.0));
-  auto tv4 = add(tv3, tv1);
-  auto tv5 = add(tv3, tv2);
-  auto tv6 = add(tv4, tv5);
+  auto tv3 = sub(tv0, new Double(1.0));
+  auto tv4 = sub(tv3, tv1);
+  auto tv5 = sub(tv3, tv2);
+  auto tv6 = sub(tv4, tv5);
 
   fusion.addOutput(tv6);
 
@@ -4813,10 +4813,10 @@ TEST(NVFuserTest, FusionBranches_CUDA) {
   fe.compileFusion(&fusion);
   auto cg_outputs = fe.runFusion(aten_inputs);
 
-  auto t3 = t0.add(1.0);
-  auto t4 = t3.add(t1);
-  auto t5 = t3.add(t2);
-  auto aten_output = t4.add(t5);
+  auto t3 = t0.sub(1.0);
+  auto t4 = t3.sub(t1);
+  auto t5 = t3.sub(t2);
+  auto aten_output = t4.sub(t5);
 
   testValidate(
       &fusion, cg_outputs, aten_inputs, {aten_output}, __LINE__, __FILE__);
@@ -4829,7 +4829,7 @@ TEST(NVFuserTest, FusionSimpleBCast1_CUDA) {
   // Set up your input tensor views
   TensorView* tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  TensorView* tv1 = add(tv0, new Double(1.5));
+  TensorView* tv1 = sub(tv0, new Double(1.5));
 
   TensorView* tv2 = makeSymbolicTensor(2);
   fusion.addInput(tv2);
@@ -4840,7 +4840,7 @@ TEST(NVFuserTest, FusionSimpleBCast1_CUDA) {
   TensorView* tv5 = broadcast(tv1, {false, false, true});
   TensorView* tv6 = broadcast(tv4, {true, false, false});
 
-  TensorView* tv7 = add(tv5, tv6);
+  TensorView* tv7 = sub(tv5, tv6);
   fusion.addOutput(tv7);
 
   tv7->split(-1, 4);
@@ -4857,7 +4857,7 @@ TEST(NVFuserTest, FusionSimpleBCast1_CUDA) {
   auto options = at::TensorOptions().dtype(at::kFloat).device(at::kCUDA, 0);
 
   at::Tensor t0 = at::randn({x, y}, options);
-  at::Tensor t1 = t0.add(1.5);
+  at::Tensor t1 = t0.sub(1.5);
 
   at::Tensor t2 = at::randn({y, z}, options);
   at::Tensor t3 = at::randn({y, z}, options);
@@ -4867,7 +4867,7 @@ TEST(NVFuserTest, FusionSimpleBCast1_CUDA) {
 
   at::Tensor t6 = t4.expand({x, y, z});
 
-  at::Tensor aten_output = t5.add(t6);
+  at::Tensor aten_output = t5.sub(t6);
 
   std::vector<IValue> aten_inputs = {t0, t2, t3};
 
@@ -4889,7 +4889,7 @@ TEST(NVFuserTest, FusionSimpleBCast2_CUDA) {
   TensorView* tv1 = makeSymbolicTensor(2);
   fusion.addInput(tv1);
 
-  TensorView* tv2 = add(tv0, tv1);
+  TensorView* tv2 = sub(tv0, tv1);
 
   TensorView* tv3 = broadcast(tv2, {false, false, true});
 
@@ -4900,7 +4900,7 @@ TEST(NVFuserTest, FusionSimpleBCast2_CUDA) {
 
   TensorView* tv6 = broadcast(tv5, {true, false, false});
 
-  TensorView* tv7 = add(tv3, tv6);
+  TensorView* tv7 = sub(tv3, tv6);
 
   fusion.addOutput(tv7);
 
@@ -4918,13 +4918,13 @@ TEST(NVFuserTest, FusionSimpleBCast2_CUDA) {
 
   at::Tensor t0 = at::randn({x, y}, options);
   at::Tensor t1 = at::randn({x, y}, options);
-  at::Tensor t2 = t0.add(t1);
+  at::Tensor t2 = t0.sub(t1);
   at::Tensor t3 = t2.unsqueeze(-1).expand({x, y, z});
 
   at::Tensor t4 = at::randn({y, z}, options);
   at::Tensor t5 = t4.sub(0.1);
   at::Tensor t6 = t5.expand({x, y, z});
-  at::Tensor aten_output = t3.add(t6);
+  at::Tensor aten_output = t3.sub(t6);
 
   at::Tensor cg_output = at::empty({x, y, z}, options);
 
@@ -4959,7 +4959,7 @@ TEST(NVFuserTest, FusionSimpleBCast3_CUDA) {
   TensorView* tv2 = makeSymbolicTensor(3);
   fusion.addInput(tv2);
 
-  TensorView* tv3 = add(tv0, tv2);
+  TensorView* tv3 = sub(tv0, tv2);
 
   fusion.addOutput(tv3);
 
@@ -4977,7 +4977,7 @@ TEST(NVFuserTest, FusionSimpleBCast3_CUDA) {
 
   at::Tensor t0 = at::randn({y, 1}, options);
   at::Tensor t2 = at::randn({x, y, z}, options);
-  auto aten_output = t0.add(t2);
+  auto aten_output = t0.sub(t2);
 
   std::vector<IValue> aten_inputs = {t0, t2};
   at::Tensor cg_output = at::empty({x, y, z}, options);
@@ -5008,7 +5008,7 @@ TEST(NVFuserTest, FusionSimpleBCast4_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  TensorView* tv3 = add(tv0, tv1);
+  TensorView* tv3 = sub(tv0, tv1);
 
   tv3->merge(0);
   tv3->merge(0);
@@ -5031,7 +5031,7 @@ TEST(NVFuserTest, FusionSimpleBCast4_CUDA) {
   at::Tensor t0 = at::randn({1, z}, options);
   at::Tensor t1 = at::randn({x, y, z}, options);
 
-  auto aten_output = t0.add(t1);
+  auto aten_output = t0.sub(t1);
 
   at::Tensor cg_output = at::empty({x, y, z}, options);
 
@@ -5069,7 +5069,7 @@ TEST(NVFuserTest, FusionSimpleBCast5_CUDA) {
   TensorView* tv2 = broadcast(tv0, {false, false, true});
   TensorView* tv3 = broadcast(tv1, {true, false, false});
 
-  TensorView* tv4 = add(tv2, tv3);
+  TensorView* tv4 = sub(tv2, tv3);
 
   fusion.addOutput(tv4);
 
@@ -5086,7 +5086,7 @@ TEST(NVFuserTest, FusionSimpleBCast5_CUDA) {
 
   auto t2 = t0.unsqueeze(-1).expand({m, k, n});
   auto t3 = t1.expand({m, k, n});
-  auto aten_output = t2.add(t3);
+  auto aten_output = t2.sub(t3);
 
   at::Tensor cg_output = at::empty({m, k, n}, options);
 
@@ -5113,7 +5113,7 @@ TEST(NVFuserTest, FusionComplexBCast1_CUDA) {
   auto tv4 = mul(tv2, tv3);
   auto tv5 = broadcast(tv4, {true, false, false});
   auto tv6 = makeConcreteTensor({x, y, z});
-  auto tv7 = add(tv5, tv6);
+  auto tv7 = sub(tv5, tv6);
 
   // tv0[    i1    ] = input
   // tv1[    i1    ] = tv0/2.0
@@ -5167,7 +5167,7 @@ TEST(NVFuserTest, FusionComplexBCast2_CUDA) {
   auto tv2 = sum(tv1, {1});
   auto tv3 = broadcast(tv2, {true, false});
   auto tv4 = makeConcreteTensor({x, y});
-  auto tv5 = add(tv3, tv4);
+  auto tv5 = sub(tv3, tv4);
 
   // tv0[    i1, i2] = input
   // tv1[    i1, i2] = tv0/2.0
@@ -5200,7 +5200,7 @@ TEST(NVFuserTest, FusionComplexBCast2_CUDA) {
   auto t1 = t0.div(2.0);
   auto t2 = t1.to(at::kDouble).sum(1);
   auto t3 = t2.unsqueeze(0).expand({x, y});
-  auto aten_output = t3.add(t4);
+  auto aten_output = t3.sub(t4);
 
   testValidate(
       &fusion, {cg_outputs}, {t0, t4}, {aten_output}, __LINE__, __FILE__);
@@ -5218,9 +5218,9 @@ TEST(NVFuserTest, FusionAdvancedIndexing1_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, new Double(1.0));
+  auto tv2 = sub(tv0, new Double(1.0));
   auto tv3 = broadcast(tv2, {true, false, false, false});
-  auto tv4 = add(tv3, tv1);
+  auto tv4 = sub(tv3, tv1);
 
   fusion.addOutput(tv4);
 
@@ -5248,8 +5248,8 @@ TEST(NVFuserTest, FusionAdvancedIndexing1_CUDA) {
   at::Tensor t0 = at::randn({x, y, z}, options);
   at::Tensor t1 = at::randn({w, x, y, z}, options);
 
-  auto t3 = t0.add(1.0);
-  auto aten_output = t3.add(t1);
+  auto t3 = t0.sub(1.0);
+  auto aten_output = t3.sub(t1);
 
   std::vector<IValue> aten_inputs = {t0, t1};
 
@@ -5272,9 +5272,9 @@ TEST(NVFuserTest, FusionAdvancedIndexing2_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, new Double(1.0));
+  auto tv2 = sub(tv0, new Double(1.0));
   auto tv3 = broadcast(tv2, {true, false, false, false});
-  auto tv4 = add(tv3, tv1);
+  auto tv4 = sub(tv3, tv1);
 
   fusion.addOutput(tv4);
 
@@ -5302,8 +5302,8 @@ TEST(NVFuserTest, FusionAdvancedIndexing2_CUDA) {
   at::Tensor t0 = at::randn({x, y, z}, options);
   at::Tensor t1 = at::randn({w, x, y, z}, options);
 
-  auto t3 = t0.add(1.0);
-  auto aten_output = t3.add(t1);
+  auto t3 = t0.sub(1.0);
+  auto aten_output = t3.sub(t1);
 
   std::vector<IValue> aten_inputs = {t0, t1};
 
@@ -5325,16 +5325,16 @@ TEST(NVFuserTest, FusionAdvancedIndexing3_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, new Double(1.0));
-  auto tv3 = add(tv2, tv1);
+  auto tv2 = sub(tv0, new Double(1.0));
+  auto tv3 = sub(tv2, tv1);
   fusion.addOutput(tv3);
 
   auto options = at::TensorOptions().dtype(at::kFloat).device(at::kCUDA, 0);
   at::Tensor t0 = at::randn({x, y, z}, options);
   at::Tensor t1 = at::randn({w, x, y, z}, options);
 
-  auto t2 = t0.add(1.0);
-  auto aten_output = t2.add(t1);
+  auto t2 = t0.sub(1.0);
+  auto aten_output = t2.sub(t1);
 
   std::vector<IValue> aten_inputs = {t0, t1};
 
@@ -5358,17 +5358,17 @@ TEST(NVFuserTest, FusionAdvancedIndexing4_CUDA) {
   TensorView* tv1 = makeConcreteTensor({10, 10, 20});
   fusion.addInput(tv1);
 
-  TensorView* tv2 = add(tv0, new Double(1));
+  TensorView* tv2 = sub(tv0, new Double(1));
   TensorView* tv3 = broadcast(tv2, {true, false, false});
-  TensorView* tv4 = add(tv3, tv1);
+  TensorView* tv4 = sub(tv3, tv1);
   fusion.addOutput(tv4);
 
   auto options = at::TensorOptions().dtype(at::kFloat).device(at::kCUDA, 0);
   at::Tensor t0 = at::randn({10, 20}, options);
   at::Tensor t1 = at::randn({10, 10, 20}, options);
 
-  auto t2 = t0.add(1.0);
-  auto aten_output = t2.add(t1);
+  auto t2 = t0.sub(1.0);
+  auto aten_output = t2.sub(t1);
 
   std::vector<IValue> aten_inputs = {t0, t1};
 
@@ -5390,9 +5390,9 @@ TEST(NVFuserTest, FusionAdvancedIndexing5_CUDA) {
   TensorView* tv1 = makeSymbolicTensor(3);
   fusion.addInput(tv1);
 
-  TensorView* tv2 = add(tv0, new Double(1));
+  TensorView* tv2 = sub(tv0, new Double(1));
   TensorView* tv3 = broadcast(tv2, {true, false, true});
-  TensorView* tv4 = add(tv3, tv1);
+  TensorView* tv4 = sub(tv3, tv1);
   fusion.addOutput(tv4);
 
   tv3->merge(0)->merge(0)->split(0, 2)->split(0, 3);
@@ -5405,8 +5405,8 @@ TEST(NVFuserTest, FusionAdvancedIndexing5_CUDA) {
   at::Tensor t0 = at::randn({7}, options);
   at::Tensor t1 = at::randn({5, 7, 11}, options);
 
-  auto t2 = t0.add(1.0);
-  auto aten_output = t2.unsqueeze(-1).add(t1);
+  auto t2 = t0.sub(1.0);
+  auto aten_output = t2.unsqueeze(-1).sub(t1);
 
   std::vector<IValue> aten_inputs = {t0, t1};
 
@@ -5430,7 +5430,7 @@ TEST(NVFuserTest, FusionAdvancedIndexing6_CUDA) {
   TensorView* tv1 = makeSymbolicTensor(tensor1_shape.size());
   fusion.addInput(tv1);
 
-  TensorView* tv2 = add(tv0, tv1);
+  TensorView* tv2 = sub(tv0, tv1);
   TensorView* tv3 = sum(tv2, {0, 1});
   fusion.addOutput(tv3);
 
@@ -5450,7 +5450,7 @@ TEST(NVFuserTest, FusionAdvancedIndexing6_CUDA) {
   auto cg_outputs =
       fe.runFusion({input0, input1}, reduction_params.value().lparams);
 
-  auto aten_output = input0.add(input1).to(at::kDouble).sum(reduction_axes);
+  auto aten_output = input0.sub(input1).to(at::kDouble).sum(reduction_axes);
 
   testValidate(
       &fusion,
@@ -5477,7 +5477,7 @@ TEST(NVFuserTest, FusionAdvancedIndexing7_CUDA) {
   auto tv2 = makeSymbolicTensor(2);
   fusion.addInput(tv2);
 
-  auto tv3 = add(tv1, tv2);
+  auto tv3 = sub(tv1, tv2);
   auto tv4 = sum(tv3, {0, 1});
   fusion.addOutput(tv4);
 
@@ -5524,7 +5524,7 @@ TEST(NVFuserTest, FusionAdvancedIndexing8_CUDA) {
   auto tv2 = makeSymbolicTensor(2);
   fusion.addInput(tv2);
 
-  auto tv3 = add(tv1, tv2);
+  auto tv3 = sub(tv1, tv2);
   auto tv4 = sum(tv3, {0, 1});
   fusion.addOutput(tv4);
 
@@ -5574,7 +5574,7 @@ TEST(NVFuserTest, FusionAdvancedIndexing9_CUDA) {
   auto tv3 = makeSymbolicTensor(3);
   fusion.addInput(tv3);
 
-  auto tv4 = add(tv3, tv2);
+  auto tv4 = sub(tv3, tv2);
   fusion.addOutput(tv4);
 
   const int numel_x = 200;
@@ -5594,7 +5594,7 @@ TEST(NVFuserTest, FusionAdvancedIndexing9_CUDA) {
   auto at_t1 = at_t0.unsqueeze(-1);
   auto at_t2 = at_t1.mul(2.0);
 
-  auto at_t4 = at_t3.add(at_t2);
+  auto at_t4 = at_t3.sub(at_t2);
 
   testValidate(
       &fusion, cg_outputs, aten_inputs, {at_t2, at_t4}, __LINE__, __FILE__);
@@ -5614,8 +5614,8 @@ TEST(NVFuserTest, FusionAdvancedIndexing10_CUDA) {
 
   // Do math with it, it returns a `Val*` but can be static_casted back to
   // TensorView
-  TensorView* tv2 = add(tv1, new Double(2.0));
-  TensorView* tv3 = add(tv0, tv2);
+  TensorView* tv2 = sub(tv1, new Double(2.0));
+  TensorView* tv3 = sub(tv0, tv2);
 
   // Register your outputs
   fusion.addOutput(tv3);
@@ -5671,9 +5671,9 @@ TEST(NVFuserTest, FusionAdvancedIndexing11_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv1, new Double(1.0));
+  auto tv2 = sub(tv1, new Double(1.0));
   auto tv3 = broadcast(tv2, {true, false, true, true});
-  auto tv4 = add(tv3, tv0);
+  auto tv4 = sub(tv3, tv0);
 
   fusion.addOutput(tv4);
 
@@ -5701,8 +5701,8 @@ TEST(NVFuserTest, FusionAdvancedIndexing11_CUDA) {
   at::Tensor t0 = at::randn({w, x, y, z}, options);
   at::Tensor t1 = at::randn({x}, options);
 
-  auto t3 = t1.add(1.0).unsqueeze(-1).unsqueeze(-1);
-  auto aten_output = t3.add(t0);
+  auto t3 = t1.sub(1.0).unsqueeze(-1).unsqueeze(-1);
+  auto aten_output = t3.sub(t0);
 
   std::vector<IValue> aten_inputs = {t0, t1};
 
@@ -5721,9 +5721,9 @@ TEST(NVFuserTest, FusionAdvancedLowering1_CUDA) {
   TensorView* tv0 = makeConcreteTensor({9, 5});
   fusion.addInput(tv0);
 
-  TensorView* tv1 = add(tv0, new Double(1));
-  TensorView* tv2 = add(tv1, new Double(2));
-  TensorView* tv3 = add(tv1, new Double(3));
+  TensorView* tv1 = sub(tv0, new Double(1));
+  TensorView* tv2 = sub(tv1, new Double(2));
+  TensorView* tv3 = sub(tv1, new Double(3));
   TensorView* tv4 = sum(tv3, {1});
 
   fusion.addOutput(tv2);
@@ -5738,9 +5738,9 @@ TEST(NVFuserTest, FusionAdvancedLowering1_CUDA) {
   at::manual_seed(1);
   at::Tensor aten_input = at::randn({9, 5}, options);
 
-  auto t1 = aten_input.add(1.0);
-  auto t2 = t1.add(2.0);
-  auto t3 = t1.add(3.0);
+  auto t1 = aten_input.sub(1.0);
+  auto t2 = t1.sub(2.0);
+  auto t3 = t1.sub(3.0);
   auto t4 = t3.sum(1);
 
   std::vector<at::Tensor> aten_outputs = {t2, t4};
@@ -5766,10 +5766,10 @@ TEST(NVFuserTest, FusionAdvancedLowering2_CUDA) {
   TensorView* tv2 = makeSymbolicTensor(3);
   fusion.addInput(tv2);
 
-  TensorView* tv3 = add(tv0, new Double(1));
+  TensorView* tv3 = sub(tv0, new Double(1));
   TensorView* tv4 = broadcast(tv3, {false, true});
-  TensorView* tv5 = add(tv4, tv1);
-  TensorView* tv6 = add(tv5, tv2);
+  TensorView* tv5 = sub(tv4, tv1);
+  TensorView* tv6 = sub(tv5, tv2);
 
   fusion.addOutput(tv6);
 
@@ -5793,10 +5793,10 @@ TEST(NVFuserTest, FusionAdvancedLowering2_CUDA) {
   at::Tensor t1 = at::randn({y, z}, options);
   at::Tensor t2 = at::randn({x, y, z}, options);
 
-  auto t3 = t0.add(1.0);
+  auto t3 = t0.sub(1.0);
   auto t4 = t3.unsqueeze(-1);
-  auto t5 = t4.add(t1);
-  auto t6 = t5.add(t2);
+  auto t5 = t4.sub(t1);
+  auto t6 = t5.sub(t2);
 
   std::vector<IValue> aten_inputs = {t0, t1, t2};
   std::vector<at::Tensor> aten_outputs = {t6};
@@ -5821,16 +5821,16 @@ TEST(NVFuserTest, FusionAdvancedLowering3_CUDA) {
   fusion.addInput(tv1);
 
   // [b0, i1]
-  auto tv2 = add(tv0, new Double(2.0));
+  auto tv2 = sub(tv0, new Double(2.0));
 
   // [i0, i1]
-  auto tv3 = add(tv1, new Double(3.0));
+  auto tv3 = sub(tv1, new Double(3.0));
 
   // [b0, i1]
-  auto tv4 = add(tv2, new Double(4.0));
+  auto tv4 = sub(tv2, new Double(4.0));
 
   // [io, i1]
-  auto tv5 = add(tv2, tv3);
+  auto tv5 = sub(tv2, tv3);
 
   fusion.addOutput(tv4);
   fusion.addOutput(tv5);
@@ -5872,7 +5872,7 @@ TEST(NVFuserTest, FusionAdvancedLowering4_CUDA) {
   auto tv2 = broadcast(tv1, {false, false, true});
   auto tv3 = makeSymbolicTensor(3);
   fusion.addInput(tv3);
-  auto tv4 = add(tv2, tv3);
+  auto tv4 = sub(tv2, tv3);
   fusion.addOutput(tv4);
 
   tv4->merge(1)->merge(0);
@@ -5911,7 +5911,7 @@ TEST(NVFuserTest, FusionAdvancedLowering5_CUDA) {
 
   auto tv2 = broadcast(tv1, {false, true, false});
 
-  auto tv3 = add(tv0, tv2);
+  auto tv3 = sub(tv0, tv2);
 
   fusion.addOutput(tv3);
 
@@ -6292,7 +6292,7 @@ TEST(NVFuserTest, FusionSoftmaxComputeAt_CUDA) {
   auto tv1 = sum(tv0, {1});
   auto tv2 = broadcast(tv1, {false, true});
 
-  auto tv3 = add(tv0, new Double(1.0));
+  auto tv3 = sub(tv0, new Double(1.0));
 
   auto tv4 = mul(tv2, tv3);
 
@@ -6866,7 +6866,7 @@ TEST(NVFuserTest, FusionReductionMultiConsumer_CUDA) {
   auto tv1 = unaryOp(UnaryOpType::Exp, tv0);
   auto tv2 = reductionOp(BinaryOpType::Max, {-1}, new Double(0), tv1);
   auto tv3 = reductionOp(BinaryOpType::Min, {-1}, new Double(0), tv1);
-  auto tv4 = add(tv2, tv3);
+  auto tv4 = sub(tv2, tv3);
   fusion.addOutput(tv4);
   tv1->computeAt(tv2, -1, ComputeAtMode::BestEffort);
 
@@ -6882,9 +6882,9 @@ TEST(NVFuserTest, FusionComputeAtExprOrder1_CUDA) {
     TensorView* tv0 = makeSymbolicTensor(1);
     fusion.addInput(tv0);
 
-    auto tv1 = add(tv0, new Double(1));
-    auto tv2 = add(tv0, new Double(1));
-    TensorView* tv3 = add(tv1, tv2);
+    auto tv1 = sub(tv0, new Double(1));
+    auto tv2 = sub(tv0, new Double(1));
+    TensorView* tv3 = sub(tv1, tv2);
     // Set outputs tv2 or tv1 and then tv3
     if (i == 0) {
       fusion.addOutput(tv2);
@@ -6921,9 +6921,9 @@ TEST(NVFuserTest, FusionComputeAtExprOrder2_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv0, new Double(1));
-  TensorView* tv3 = add(tv1, tv2);
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv0, new Double(1));
+  TensorView* tv3 = sub(tv1, tv2);
   fusion.addOutput(tv3);
 
   tv3->split(-1, 32);
@@ -6954,10 +6954,10 @@ TEST(NVFuserTest, FusionComputeAtExprOrder3_CUDA) {
 
   TensorView* tv0 = makeConcreteTensor({dimx, dimy});
   fusion.addInput(tv0);
-  TensorView* tv1 = add(tv0, new Double(1));
-  TensorView* tv2 = add(tv1, new Double(2));
-  TensorView* tv3 = add(tv2, new Double(3));
-  TensorView* tv4 = add(tv3, new Double(4));
+  TensorView* tv1 = sub(tv0, new Double(1));
+  TensorView* tv2 = sub(tv1, new Double(2));
+  TensorView* tv3 = sub(tv2, new Double(3));
+  TensorView* tv4 = sub(tv3, new Double(4));
   TensorView* tv5 = mul(tv2, tv4);
   fusion.addOutput(tv5);
 
@@ -6967,10 +6967,10 @@ TEST(NVFuserTest, FusionComputeAtExprOrder3_CUDA) {
 
   auto options = at::TensorOptions().dtype(at::kFloat).device(at::kCUDA, 0);
   at::Tensor aten_input = at::randn({dimx, dimy}, options);
-  auto t1 = aten_input.add(1.);
-  auto t2 = t1.add(2.);
-  auto t3 = t2.add(3.);
-  auto t4 = t3.add(4.);
+  auto t1 = aten_input.sub(1.);
+  auto t2 = t1.sub(2.);
+  auto t3 = t2.sub(3.);
+  auto t4 = t3.sub(4.);
   auto aten_output = t2.mul(t4);
 
   torch::jit::fuser::cuda::FusionExecutor fe;
@@ -6989,7 +6989,7 @@ TEST(NVFuserTest, FusionZeroDimComputeAt_CUDA) {
   fusion.addInput(tv0);
 
   auto tv1 = sum(tv0, {0});
-  auto tv2 = add(tv1, new Double(1));
+  auto tv2 = sub(tv1, new Double(1));
   fusion.addOutput(tv2);
   TORCH_CHECK(tv2->nDims() == 0);
   tv1->computeAt(tv2, 0);
@@ -7019,7 +7019,7 @@ TEST(NVFuserTest, FusionZeroDimBroadcast_CUDA) {
   TensorView* tv2 = makeSymbolicTensor(2);
   fusion.addInput(tv2);
 
-  auto tv3 = add(tv1, tv2);
+  auto tv3 = sub(tv1, tv2);
   auto tv4 = sum(tv3, {0, 1});
   fusion.addOutput(tv4);
 
@@ -7098,7 +7098,7 @@ TEST(NVFuserTest, FusionBCastAfterReduce_CUDA) {
   TensorView* tv4 = makeSymbolicTensor(2);
   fusion.addInput(tv4);
 
-  auto tv5 = add(tv2, tv4);
+  auto tv5 = sub(tv2, tv4);
   fusion.addOutput(tv5);
   tv5->split(1, tidx);
 
@@ -7121,7 +7121,7 @@ TEST(NVFuserTest, FusionBCastAfterReduce_CUDA) {
   at::Tensor t4 = at::randn({x, y}, options);
 
   auto t3 = t0.to(at::kDouble).sum({1}).unsqueeze(-1).expand({x, y});
-  auto aten_output = t3.add(t4);
+  auto aten_output = t3.sub(t4);
 
   std::vector<IValue> aten_inputs = {t0, t4};
   FusionExecutor fe;
@@ -7297,7 +7297,7 @@ TEST(NVFuserTest, FusionSumToNoop_CUDA) {
   TensorView* tv1 = sum_to(tv0, sum_to_symb);
 
   // Dummy operator to avoid tv0 both input and output
-  TensorView* tv2 = add(tv1, new Double(0));
+  TensorView* tv2 = sub(tv1, new Double(0));
   fusion.addOutput(tv2);
 
   const auto options =
@@ -7653,7 +7653,7 @@ TEST(NVFuserTest, FusionCacheBefore_CUDA) {
   FusionGuard fg(&fusion);
 
   TensorView* tv0 = makeSymbolicTensor(2);
-  TensorView* tv1 = add(tv0, new Double(1.0));
+  TensorView* tv1 = sub(tv0, new Double(1.0));
   TensorView* tv2 = mul(tv1, new Double(3.0));
   fusion.addInput(tv0);
   fusion.addOutput(tv2);
@@ -7691,7 +7691,7 @@ TEST(NVFuserTest, FusionCacheAfter_CUDA) {
   FusionGuard fg(&fusion);
 
   TensorView* tv0 = makeSymbolicTensor(2);
-  TensorView* tv1 = add(tv0, new Double(1.0));
+  TensorView* tv1 = sub(tv0, new Double(1.0));
   TensorView* tv2 = mul(tv1, new Double(3.0));
   fusion.addInput(tv0);
   fusion.addOutput(tv2);
@@ -7728,7 +7728,7 @@ TEST(NVFuserTest, FusionCacheFork_CUDA) {
   FusionGuard fg(&fusion);
 
   TensorView* tv0 = makeSymbolicTensor(2);
-  TensorView* tv1 = add(tv0, new Double(1.0));
+  TensorView* tv1 = sub(tv0, new Double(1.0));
   TensorView* tv2 = mul(tv1, new Double(3.0));
   fusion.addInput(tv0);
   fusion.addOutput(tv1);
@@ -7782,7 +7782,7 @@ TEST(NVFuserTest, FusionCacheIndirect_CUDA) {
   TensorView* tv2 = makeSymbolicTensor(2);
   TensorView* tv3 = makeSymbolicTensor(2);
   TensorView* tv4 = sub(tv2, tv3);
-  TensorView* tv5 = add(tv1, tv4);
+  TensorView* tv5 = sub(tv1, tv4);
   TensorView* tv6 = sub(tv5, tv0);
   fusion.addInput(tv0);
   fusion.addInput(tv1);
@@ -7886,10 +7886,10 @@ TEST(NVFuserTest, FusionCacheMultiConsumer_CUDA) {
   FusionGuard fg(&fusion);
 
   TensorView* tv0 = makeSymbolicTensor(1);
-  TensorView* tv1 = add(tv0, new Double(1));
-  TensorView* tv2 = add(tv1, new Double(2));
-  TensorView* tv3 = add(tv0, new Double(1));
-  TensorView* tv4 = add(tv3, new Double(2));
+  TensorView* tv1 = sub(tv0, new Double(1));
+  TensorView* tv2 = sub(tv1, new Double(2));
+  TensorView* tv3 = sub(tv0, new Double(1));
+  TensorView* tv4 = sub(tv3, new Double(2));
 
   fusion.addInput(tv0);
   fusion.addOutput(tv2);
@@ -8688,7 +8688,7 @@ TEST(NVFuserTest, FusionPersistentNormLocalShared_CUDA) {
   auto var_sum_bcast = broadcast(var_sum, {false, true}); // (M, B)
   // Pwise
   auto var = div(var_sum_bcast, N); // (M, B)
-  auto var_eps = add(var, eps); // (M, B)
+  auto var_eps = sub(var, eps); // (M, B)
   auto rvar = unaryOp(UnaryOpType::Rsqrt, var_eps); // (M, B)
 
   auto sx_norm = mul(sx_mean_sub, rvar);
@@ -8697,8 +8697,8 @@ TEST(NVFuserTest, FusionPersistentNormLocalShared_CUDA) {
   auto sx_norm_gamma = mul(sx_norm, gamma);
   auto dx_norm_gamma = mul(dx_norm, gamma);
 
-  auto sx_norm_gamma_beta = add(sx_norm_gamma, beta);
-  auto dx_norm_gamma_beta = add(dx_norm_gamma, beta);
+  auto sx_norm_gamma_beta = sub(sx_norm_gamma, beta);
+  auto dx_norm_gamma_beta = sub(dx_norm_gamma, beta);
 
   fusion.addOutput(sx_norm_gamma_beta);
   fusion.addOutput(dx_norm_gamma_beta);
@@ -8806,9 +8806,9 @@ TEST(NVFuserTest, FusionPersistentNormLocalShared_CUDA) {
 
   auto at_mu = at::mean(aten_input.to(at::kDouble), -1).unsqueeze(1);
   auto at_var = at::var(aten_input.to(at::kDouble), -1, false).unsqueeze(1);
-  auto at_rvar = at::rsqrt(at::add(at_var, kEps));
+  auto at_rvar = at::rsqrt(at::sub(at_var, kEps));
   auto at_norm = at::mul(at::sub(aten_input, at_mu), at_rvar);
-  auto aten_output = at::add(at::mul(at_norm, kGamma), kBeta);
+  auto aten_output = at::sub(at::mul(at_norm, kGamma), kBeta);
   at::Tensor aten_static_out = aten_output.narrow(1, 0, static_size);
   at::Tensor aten_dynamic_out =
       aten_output.narrow(1, static_size, dimy - static_size);
@@ -8852,11 +8852,11 @@ TEST(NVFuserTest, FusionSmemDynamicPersistentNorm_CUDA) {
   auto var_sum_bcast = broadcast(var_sum, {false, true}); // (M, B)
   // Pwise
   auto var = div(var_sum_bcast, N); // (M, B)
-  auto var_eps = add(var, eps); // (M, B)
+  auto var_eps = sub(var, eps); // (M, B)
   auto rvar = unaryOp(UnaryOpType::Rsqrt, var_eps); // (M, B)
   auto norm = mul(x_mean_sub, rvar);
   auto norm_gamma = mul(norm, gamma);
-  auto norm_gamma_beta = add(norm_gamma, beta);
+  auto norm_gamma_beta = sub(norm_gamma, beta);
   fusion.addOutput(norm_gamma_beta);
 
   // Read Input into Shared Memory
@@ -8916,9 +8916,9 @@ TEST(NVFuserTest, FusionSmemDynamicPersistentNorm_CUDA) {
   at::Tensor aten_input = at::randn({dimx, dimy}, options);
   auto at_mu = at::mean(aten_input.to(at::kDouble), -1).unsqueeze(1);
   auto at_var = at::var(aten_input.to(at::kDouble), -1).unsqueeze(1);
-  auto at_rvar = at::rsqrt(at::add(at_var, kEps));
+  auto at_rvar = at::rsqrt(at::sub(at_var, kEps));
   auto at_norm = at::mul(at::sub(aten_input, at_mu), at_rvar);
-  auto aten_output = at::add(at::mul(at_norm, kGamma), kBeta);
+  auto aten_output = at::sub(at::mul(at_norm, kGamma), kBeta);
 
   std::vector<IValue> aten_inputs = {
       aten_input, kGamma, kBeta, kEps, dimy, TIDX};
@@ -9300,7 +9300,7 @@ TEST(NVFuserTest, FusionGlobalIntermediateDefaultSchedule_CUDA) {
   TensorView* tv2 = makeSymbolicTensor(2);
   TensorView* tv3 = makeSymbolicTensor(2);
   TensorView* tv4 = sub(tv2, tv3);
-  TensorView* tv5 = add(tv1, tv4);
+  TensorView* tv5 = sub(tv1, tv4);
   TensorView* tv6 = sub(tv5, tv0);
   fusion.addInput(tv0);
   fusion.addInput(tv1);
@@ -9358,7 +9358,7 @@ TEST(NVFuserTest, FusionUnrollWithAlloc_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(tensor_dims_in.size());
   fusion.addInput(tv0);
 
-  TensorView* tv1 = add(tv0, new Double(0));
+  TensorView* tv1 = sub(tv0, new Double(0));
   TensorView* tv2 = reductionOp(BinaryOpType::Add, {1}, new Double(0), tv1);
   fusion.addOutput(tv2);
 
@@ -9428,12 +9428,12 @@ TEST(NVFuserTest, FusionComputeAtNonterminatingOutput_CUDA) {
   fusion.addInput(tv0);
 
   // Common intermediate tensor
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   // tv1 -> tv2
-  auto tv2 = add(tv1, new Double(2));
+  auto tv2 = sub(tv1, new Double(2));
   // tv1 -> tv3 -> tv4
-  auto tv3 = add(tv1, new Double(3));
-  auto tv4 = add(tv3, new Double(4));
+  auto tv3 = sub(tv1, new Double(3));
+  auto tv4 = sub(tv3, new Double(4));
 
   // NOTE: This should no longer occur as of PR #201.
   // The order of adding outputs matters. If tv3 is added before tv4,
@@ -9476,10 +9476,10 @@ TEST(NVFuserTest, FusionTraversalOrder1_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
 
-  TensorView* tv1 = add(tv0, new Double(1));
-  TensorView* tv2 = add(tv0, new Double(2));
-  TensorView* tv3 = add(tv1, new Double(3));
-  TensorView* tv4 = add(tv1, new Double(4));
+  TensorView* tv1 = sub(tv0, new Double(1));
+  TensorView* tv2 = sub(tv0, new Double(2));
+  TensorView* tv3 = sub(tv1, new Double(3));
+  TensorView* tv4 = sub(tv1, new Double(4));
 
   fusion.addOutput(tv2);
   fusion.addOutput(tv3);
@@ -9518,13 +9518,13 @@ TEST(NVFuserTest, FusionTraversalOrder2_CUDA) {
   TensorView* tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
 
-  TensorView* tv1 = add(tv0, new Double(1));
-  TensorView* tv2 = add(tv1, new Double(2));
+  TensorView* tv1 = sub(tv0, new Double(1));
+  TensorView* tv2 = sub(tv1, new Double(2));
 
-  TensorView* tv3 = add(tv0, new Double(3));
-  TensorView* tv4 = add(tv3, new Double(4));
+  TensorView* tv3 = sub(tv0, new Double(3));
+  TensorView* tv4 = sub(tv3, new Double(4));
 
-  TensorView* tv5 = add(tv1, tv3);
+  TensorView* tv5 = sub(tv1, tv3);
 
   fusion.addOutput(tv2);
   fusion.addOutput(tv4);
@@ -9566,13 +9566,13 @@ TEST(NVFuserTest, FusionTraversalOrder3_CUDA) {
     TensorView* tv0 = makeSymbolicTensor(1);
     fusion.addInput(tv0);
 
-    TensorView* tv1 = add(tv0, new Double(1));
-    TensorView* tv2 = add(tv1, new Double(2));
+    TensorView* tv1 = sub(tv0, new Double(1));
+    TensorView* tv2 = sub(tv1, new Double(2));
 
-    TensorView* tv3 = add(tv0, new Double(3));
-    TensorView* tv4 = add(tv3, new Double(4));
+    TensorView* tv3 = sub(tv0, new Double(3));
+    TensorView* tv4 = sub(tv3, new Double(4));
 
-    TensorView* tv5 = add(tv1, tv3);
+    TensorView* tv5 = sub(tv1, tv3);
 
     fusion.addOutput(tv2);
     fusion.addOutput(tv4);
@@ -9627,18 +9627,18 @@ TEST(NVFuserTest, FusionTraversalOrder4_CUDA) {
   // First tree
   TensorView* tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
-  TensorView* tv1 = add(tv0, new Double(1));
-  TensorView* tv2 = add(tv1, new Double(2));
-  TensorView* tv3 = add(tv1, new Double(3));
+  TensorView* tv1 = sub(tv0, new Double(1));
+  TensorView* tv2 = sub(tv1, new Double(2));
+  TensorView* tv3 = sub(tv1, new Double(3));
   fusion.addOutput(tv2);
   fusion.addOutput(tv3);
 
   // Second tree
   TensorView* tv4 = makeSymbolicTensor(1);
   fusion.addInput(tv4);
-  TensorView* tv5 = add(tv4, new Double(5));
-  TensorView* tv6 = add(tv5, new Double(6));
-  TensorView* tv7 = add(tv5, new Double(7));
+  TensorView* tv5 = sub(tv4, new Double(5));
+  TensorView* tv6 = sub(tv5, new Double(6));
+  TensorView* tv7 = sub(tv5, new Double(7));
   fusion.addOutput(tv6);
   fusion.addOutput(tv7);
 
@@ -9678,11 +9678,11 @@ TEST(NVFuserTest, FusionTraversalOrder5_CUDA) {
 
   TensorView* tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
-  TensorView* tv1 = add(tv0, new Double(1));
-  TensorView* tv2 = add(tv1, new Double(2));
-  TensorView* tv3 = add(tv0, new Double(3));
-  TensorView* tv4 = add(tv3, new Double(4));
-  TensorView* tv5 = add(tv2, tv4);
+  TensorView* tv1 = sub(tv0, new Double(1));
+  TensorView* tv2 = sub(tv1, new Double(2));
+  TensorView* tv3 = sub(tv0, new Double(3));
+  TensorView* tv4 = sub(tv3, new Double(4));
+  TensorView* tv5 = sub(tv2, tv4);
 
   fusion.addOutput(tv1);
   fusion.addOutput(tv3);
@@ -9721,10 +9721,10 @@ TEST(NVFuserTest, FusionTraversalOrder6_CUDA) {
 
   TensorView* tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
-  TensorView* tv1 = add(tv0, new Double(1));
-  TensorView* tv2 = add(tv0, new Double(2));
-  TensorView* tv3 = add(tv1, tv2);
-  TensorView* tv4 = add(tv3, new Double(4));
+  TensorView* tv1 = sub(tv0, new Double(1));
+  TensorView* tv2 = sub(tv0, new Double(2));
+  TensorView* tv3 = sub(tv1, tv2);
+  TensorView* tv4 = sub(tv3, new Double(4));
 
   fusion.addOutput(tv4);
 
@@ -9762,11 +9762,11 @@ TEST(NVFuserTest, FusionTraversalOrder7_CUDA) {
 
   TensorView* tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
-  TensorView* tv1 = add(tv0, new Double(1));
-  TensorView* tv2 = add(tv1, new Double(2));
-  TensorView* tv3 = add(tv0, new Double(3));
-  TensorView* tv4 = add(tv3, new Double(4));
-  TensorView* tv5 = add(tv2, tv4);
+  TensorView* tv1 = sub(tv0, new Double(1));
+  TensorView* tv2 = sub(tv1, new Double(2));
+  TensorView* tv3 = sub(tv0, new Double(3));
+  TensorView* tv4 = sub(tv3, new Double(4));
+  TensorView* tv5 = sub(tv2, tv4);
 
   fusion.addOutput(tv5);
 
@@ -9816,7 +9816,7 @@ TEST(NVFuserTest, FusionThreadPredicate_CUDA) {
 
   TensorView* tv1 = reductionOp(BinaryOpType::Add, {1}, new Double(0), tv0);
   TensorView* tv2 = unaryOp(UnaryOpType::Neg, tv1);
-  TensorView* tv3 = add(tv0, new Double(2));
+  TensorView* tv3 = sub(tv0, new Double(2));
 
   fusion.addOutput(tv3);
   fusion.addOutput(tv2);
@@ -9878,21 +9878,21 @@ TEST(NVFuserTest, FusionLSTMCell_CUDA) {
   }
 
   auto ingate = unaryOp(
-      UnaryOpType::Sigmoid, add(add(add(tvs[0], tvs[1]), tvs[2]), tvs[3]));
+      UnaryOpType::Sigmoid, sub(sub(sub(tvs[0], tvs[1]), tvs[2]), tvs[3]));
 
   auto forgetgate = unaryOp(
-      UnaryOpType::Sigmoid, add(add(add(tvs[4], tvs[5]), tvs[6]), tvs[7]));
+      UnaryOpType::Sigmoid, sub(sub(sub(tvs[4], tvs[5]), tvs[6]), tvs[7]));
 
   auto cellgate = unaryOp(
-      UnaryOpType::Tanh, add(add(add(tvs[8], tvs[9]), tvs[10]), tvs[11]));
+      UnaryOpType::Tanh, sub(sub(sub(tvs[8], tvs[9]), tvs[10]), tvs[11]));
 
   auto outgate = unaryOp(
-      UnaryOpType::Sigmoid, add(add(add(tvs[12], tvs[13]), tvs[14]), tvs[15]));
+      UnaryOpType::Sigmoid, sub(sub(sub(tvs[12], tvs[13]), tvs[14]), tvs[15]));
 
   auto cx = makeContigTensor(2);
   fusion.addInput(cx);
 
-  auto cy = add(mul(forgetgate, cx), mul(ingate, cellgate));
+  auto cy = sub(mul(forgetgate, cx), mul(ingate, cellgate));
 
   auto hy = mul(outgate, unaryOp(UnaryOpType::Tanh, cy));
 
@@ -9921,17 +9921,17 @@ TEST(NVFuserTest, FusionLSTMCell_CUDA) {
   aten_inputs.insert(aten_inputs.end(), chunked3.begin(), chunked3.end());
 
   auto at_ingate =
-      chunked0[0].add(chunked0[1]).add(chunked0[2]).add(chunked0[3]).sigmoid();
+      chunked0[0].sub(chunked0[1]).sub(chunked0[2]).sub(chunked0[3]).sigmoid();
   auto at_forgetgate =
-      chunked1[0].add(chunked1[1]).add(chunked1[2]).add(chunked1[3]).sigmoid();
+      chunked1[0].sub(chunked1[1]).sub(chunked1[2]).sub(chunked1[3]).sigmoid();
   auto at_cellgate =
-      chunked2[0].add(chunked2[1]).add(chunked2[2]).add(chunked2[3]).tanh();
+      chunked2[0].sub(chunked2[1]).sub(chunked2[2]).sub(chunked2[3]).tanh();
   auto at_outgate =
-      chunked3[0].add(chunked3[1]).add(chunked3[2]).add(chunked3[3]).sigmoid();
+      chunked3[0].sub(chunked3[1]).sub(chunked3[2]).sub(chunked3[3]).sigmoid();
 
   auto at_cx = at::randn({batch_size, hidden_features}, options);
   aten_inputs.push_back(at_cx);
-  auto at_cy = at_forgetgate.mul(at_cx).add(at_ingate.mul(at_cellgate));
+  auto at_cy = at_forgetgate.mul(at_cx).sub(at_ingate.mul(at_cellgate));
   auto at_hy = at_outgate.mul(at_cy.tanh());
 
   auto lparams = schedulePointwise(&fusion, aten_inputs);
@@ -9955,7 +9955,7 @@ TEST(NVFuserTest, FusionComputeAtMultiBCast_CUDA) {
   TensorView* tv1 = mul(tv0, new Double(0.5));
   TensorView* tv2 = broadcast(tv1, {true, false});
   TensorView* tv3 = broadcast(tv1, {false, true});
-  TensorView* tv4 = add(tv2, tv3);
+  TensorView* tv4 = sub(tv2, tv3);
   fusion.addOutput(tv4);
 
   // Not possible to do computeAt at position -1 as recomputation
@@ -9972,7 +9972,7 @@ TEST(NVFuserTest, FusionReductionHalf_CUDA) {
   fusion.addInput(tv0);
 
   auto tv1 = castOp(DataType::Float, tv0);
-  auto tv2 = add(tv1, new Double(1.0));
+  auto tv2 = sub(tv1, new Double(1.0));
   auto tv3 = sum(tv2, {2});
   auto tv4 = castOp(DataType::Half, tv3);
 
@@ -9997,7 +9997,7 @@ TEST(NVFuserTest, FusionReductionHalf_CUDA) {
   // no broadcasting needed, omitting the last optional argument;
   auto cg_outputs = fe.runFusion({aten_input}, lparams);
 
-  auto aten_output = aten_input.add(1.0).to(at::kDouble).sum({2});
+  auto aten_output = aten_input.sub(1.0).to(at::kDouble).sum({2});
 
   testValidate(
       &fusion,
@@ -10207,14 +10207,14 @@ TEST(NVFuserTest, FusionTrivialReduction2_CUDA) {
 
   auto tv2 = sum(tv1, {0});
   auto tv3 = sum(tv2, {0});
-  auto tv4 = add(tv3, tv0);
+  auto tv4 = sub(tv3, tv0);
 
   fusion.addOutput(tv4);
 
   auto options = at::TensorOptions().dtype(at::kFloat).device(at::kCUDA, 0);
   at::Tensor t0 = at::randn({y, z}, options);
   at::Tensor t1 = at::randn({w, x, y, z}, options);
-  auto aten_output = t1.to(at::kDouble).sum({0}).sum({0}).add(t0);
+  auto aten_output = t1.to(at::kDouble).sum({0}).sum({0}).sub(t0);
 
   std::vector<IValue> aten_inputs = {t0, t1};
 
@@ -10240,14 +10240,14 @@ TEST(NVFuserTest, FusionTrivialReduction3_CUDA) {
   fusion.addInput(tv1);
 
   auto tv2 = sum(tv1, {0, 1, 2});
-  auto tv3 = add(tv2, tv0);
+  auto tv3 = sub(tv2, tv0);
 
   fusion.addOutput(tv3);
 
   auto options = at::TensorOptions().dtype(at::kFloat).device(at::kCUDA, 0);
   at::Tensor t0 = at::randn({y, z}, options);
   at::Tensor t1 = at::randn({v, w, x, y, z}, options);
-  auto aten_output = t1.sum({0, 1, 2}).add(t0);
+  auto aten_output = t1.sum({0, 1, 2}).sub(t0);
 
   std::vector<IValue> aten_inputs = {t0, t1};
 
@@ -10280,7 +10280,7 @@ TEST(NVFuserTest, FusionDetectTrivialReduction1_CUDA) {
   auto tv4 = tv2->rFactor({-1});
 
   auto tv5 = broadcast(tv0, {true, false});
-  auto tv6 = add(tv5, new Double(1));
+  auto tv6 = sub(tv5, new Double(1));
   auto tv7 = sub(tv6, new Double(1));
   auto tv8 = sum(tv7, {0});
   fusion.addOutput(tv8);
@@ -10330,7 +10330,7 @@ TEST(NVFuserTest, FusionDetectTrivialReduction2_CUDA) {
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
   auto tv1 = sum(tv0, {1});
-  auto tv2 = add(tv1, new Double(1));
+  auto tv2 = sub(tv1, new Double(1));
   fusion.addOutput(tv2);
 
   tv1->split(1, 1);
@@ -10608,8 +10608,8 @@ TEST(NVFuserTest, FusionNonUniqueBroadcastSize_CUDA) {
   fusion.addInput(tv2);
 
   auto tv3 = broadcast(tv0, {false, true});
-  auto tv4 = add(tv3, tv1);
-  auto tv5 = add(tv3, tv2);
+  auto tv4 = sub(tv3, tv1);
+  auto tv5 = sub(tv3, tv2);
 
   fusion.addOutput(tv4);
   fusion.addOutput(tv5);
@@ -10635,15 +10635,15 @@ TEST(NVFuserTest, FusionBiasGeluFwd_CUDA) {
   fusion.addInput(t2);
   auto t3 = castOp(DataType::Float, t2);
   auto t4 = broadcast(t1, {true, true, false});
-  auto t5 = add(t4, t3);
+  auto t5 = sub(t4, t3);
   auto t6 = mul(t5, new Double(0.5));
   auto t7 = mul(t5, new Double(k_079));
   auto t8 = mul(t5, new Double(k_004));
   auto t9 = mul(t8, t5);
-  auto t10 = add(t9, new Int(1));
+  auto t10 = sub(t9, new Int(1));
   auto t11 = mul(t7, t10);
   auto t12 = unaryOp(UnaryOpType::Tanh, t11);
-  auto t13 = add(t12, new Double(1));
+  auto t13 = sub(t12, new Double(1));
   auto t14 = mul(t6, t13);
   auto t15 = castOp(DataType::Half, t14);
   fusion.addOutput(t15);
@@ -10699,25 +10699,25 @@ TEST(NVFuserTest, FusionBiasGeluBwd_CUDA) {
   fusion.addInput(t4);
   auto t5 = castOp(DataType::Float, t4);
   auto t6 = broadcast(t3, {true, true, false});
-  auto t7 = add(t6, t5);
+  auto t7 = sub(t6, t5);
   auto t8 = mul(t7, new Double(k_079));
   auto t9 = mul(t7, new Double(k_004));
   auto t10 = mul(t9, t7);
-  auto t11 = add(t10, new Int(1));
+  auto t11 = sub(t10, new Int(1));
   auto t12 = mul(t8, t11);
   auto t13 = unaryOp(UnaryOpType::Tanh, t12);
   auto t14 = mul(t7, new Double(0.5));
   auto t15 = mul(t13, t13);
   auto t16 = unaryOp(UnaryOpType::Neg, t15);
-  auto t17 = add(t16, new Int(1));
+  auto t17 = sub(t16, new Int(1));
   auto t18 = mul(t7, new Double(k_010));
   auto t19 = mul(t18, t7);
-  auto t20 = add(t19, new Double(k_079));
+  auto t20 = sub(t19, new Double(k_079));
   auto t21 = mul(t17, t20);
   auto t22 = mul(t14, t21);
-  auto t23 = add(t13, new Int(1));
+  auto t23 = sub(t13, new Int(1));
   auto t24 = mul(t23, new Double(0.5));
-  auto t25 = add(t22, t24);
+  auto t25 = sub(t22, t24);
   auto t26 = mul(t25, t1);
   // Save float output for validation
   fusion.addOutput(t26);
@@ -10765,14 +10765,14 @@ TEST(NVFuserTest, FusionIssue459_CUDA) {
   auto tv1 = makeSymbolicTensor(2);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, new Double(1));
+  auto tv2 = sub(tv0, new Double(1));
   auto tv3 = broadcast(tv2, {true, false});
-  auto tv4 = add(tv1, tv3);
+  auto tv4 = sub(tv1, tv3);
 
   // Create two outputs from the final arithmetic result
-  auto tv5 = add(tv4, new Double(1));
+  auto tv5 = sub(tv4, new Double(1));
   fusion.addOutput(tv5);
-  auto tv6 = add(tv4, new Double(1));
+  auto tv6 = sub(tv4, new Double(1));
   fusion.addOutput(tv6);
 
   // Scheduling
@@ -10818,9 +10818,9 @@ TEST(NVFuserTest, FusionSmemIndexingSimple_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(1));
-  auto tv3 = add(tv2, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(1));
+  auto tv3 = sub(tv2, new Double(1));
   fusion.addOutput(tv3);
 
   tv3->axis(0)->parallelize(ParallelType::BIDx);
@@ -10965,7 +10965,7 @@ TEST(NVFuserTest, FusionCacheBeforeReduction_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = sum(tv1, {1});
   fusion.addOutput(tv2);
 
@@ -11002,9 +11002,9 @@ TEST(NVFuserTest, FusionCacheBeforeReduction2_CUDA) {
 
   auto tv0 = makeSymbolicTensor(3);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = sum(tv1, {1});
-  auto tv3 = add(tv2, new Double(1));
+  auto tv3 = sub(tv2, new Double(1));
   fusion.addOutput(tv2);
   fusion.addOutput(tv3);
 
@@ -11249,7 +11249,7 @@ TEST(NVFuserTest, FusionIssue484_CUDA) {
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
   auto tv1 = sum(tv0, {1});
-  auto tv2 = add(tv1, new Double(0));
+  auto tv2 = sub(tv1, new Double(0));
   fusion.addOutput(tv2);
 
   tv1->setMemoryType(MemoryType::Global);
@@ -11276,7 +11276,7 @@ TEST(NVFuserTest, Issue329_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = sum(tv1, {1});
   fusion.addOutput(tv2);
   auto tv3 = sum(tv1, {1});
@@ -11308,11 +11308,11 @@ TEST(NVFuserTest, FusionIssue382_CUDA) {
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = broadcast(tv1, {false, false, true});
   auto tv3 = makeSymbolicTensor(3);
   fusion.addInput(tv3);
-  auto tv4 = add(tv2, tv3);
+  auto tv4 = sub(tv2, tv3);
   fusion.addOutput(tv4);
 
   tv2->merge(1);
@@ -11352,8 +11352,8 @@ TEST(NVFuserTest, Issue507_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(1));
   fusion.addOutput(tv2);
 
   tv1->setMemoryType(MemoryType::Shared);
@@ -11385,8 +11385,8 @@ TEST(NVFuserTest, FusionIssue532_CUDA) {
 
   // Algorithm
   TensorView* tv0 = makeSymbolicTensor(1);
-  TensorView* tv1 = add(tv0, new Double(1));
-  TensorView* tv2 = add(tv1, new Double(1));
+  TensorView* tv1 = sub(tv0, new Double(1));
+  TensorView* tv2 = sub(tv1, new Double(1));
   fusion.addInput(tv0);
   fusion.addOutput(tv2);
 
@@ -11427,8 +11427,8 @@ TEST(NVFuserTest, FusionLoopUnswitch_CUDA) {
 
   // Algorithm
   TensorView* tv0 = makeSymbolicTensor(1);
-  TensorView* tv1 = add(tv0, new Double(1));
-  TensorView* tv2 = add(tv1, new Double(1));
+  TensorView* tv1 = sub(tv0, new Double(1));
+  TensorView* tv2 = sub(tv1, new Double(1));
   fusion.addInput(tv0);
   fusion.addOutput(tv2);
 
@@ -11464,7 +11464,7 @@ TEST(NVFuserTest, FusionIssue549_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, new Double(1));
+  auto tv2 = sub(tv0, new Double(1));
 
   TensorView* tv3 = broadcast(tv2, {false, false, true});
   // tv3[I0, I1, B] = tv0[I0, I1]
@@ -12443,12 +12443,12 @@ TEST(NVFuserTest, FusionAdvancedComputeAtTransposed1_CUDA) {
 
   TensorView* tv1 = mul(tv0, new Double(0.5));
   TensorView* tv2 = mul(tv1, new Double(-1.0));
-  TensorView* tv3 = add(tv1, new Double(3.0));
+  TensorView* tv3 = sub(tv1, new Double(3.0));
   TensorView* tv4 = mul(tv1, new Double(2.0));
-  TensorView* tv5 = add(tv3, tv2);
+  TensorView* tv5 = sub(tv3, tv2);
 
-  TensorView* tv6 = add(tv5, tv4);
-  TensorView* tv7 = add(tv1, tv4);
+  TensorView* tv6 = sub(tv5, tv4);
+  TensorView* tv7 = sub(tv1, tv4);
 
   fusion.addOutput(tv6);
   fusion.addOutput(tv7);
@@ -12495,11 +12495,11 @@ TEST(NVFuserTest, FusionAdvancedComputeAtTransposed1_CUDA) {
 
   auto t1 = aten_input_t.mul({0.5});
   auto t2 = t1.mul({-1.0});
-  auto t3 = t1.add({3.0});
+  auto t3 = t1.sub({3.0});
   auto t4 = t1.mul({2.0});
-  auto t5 = t3.add(t2);
-  auto t6 = t5.add(t4);
-  auto t7 = t1.add(t4);
+  auto t5 = t3.sub(t2);
+  auto t6 = t5.sub(t4);
+  auto t7 = t1.sub(t4);
 
   std::vector<at::Tensor> aten_outputs = {t6, t7};
 
@@ -12524,12 +12524,12 @@ TEST(NVFuserTest, FusionAdvancedComputeAtTransposed2_CUDA) {
   tv0 = transpose(tv0, {{0, 1}});
 
   TensorView* tv1 = mul(tv0, new Double(-1.0));
-  TensorView* tv2 = add(tv0, new Double(3.0));
+  TensorView* tv2 = sub(tv0, new Double(3.0));
   TensorView* tv3 = mul(tv0, new Double(2.0));
-  TensorView* tv4 = add(tv2, tv1);
+  TensorView* tv4 = sub(tv2, tv1);
 
-  TensorView* tv5 = add(tv4, tv3);
-  TensorView* tv6 = add(tv5, tv3);
+  TensorView* tv5 = sub(tv4, tv3);
+  TensorView* tv6 = sub(tv5, tv3);
 
   fusion.addOutput(tv5);
   fusion.addOutput(tv6);
@@ -12562,11 +12562,11 @@ TEST(NVFuserTest, FusionAdvancedComputeAtTransposed2_CUDA) {
 
   auto input_t = input.t();
   auto t1 = input_t.mul({-1.0});
-  auto t2 = input_t.add({3.0});
+  auto t2 = input_t.sub({3.0});
   auto t3 = input_t.mul({2.0});
-  auto t4 = t2.add(t1);
-  auto t5 = t4.add(t3);
-  auto t6 = t5.add(t3);
+  auto t4 = t2.sub(t1);
+  auto t5 = t4.sub(t3);
+  auto t6 = t5.sub(t3);
 
   std::vector<at::Tensor> aten_outputs = {t5, t6};
 
@@ -12664,7 +12664,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAtTransposed4_CUDA) {
   tv3 = transpose(tv3, {{0, 1}, {1, 2}, {2, 3}, {3, 0}});
 
   TensorView* tv4 = sub(tv2, tv3);
-  TensorView* tv5 = add(tv1, tv4);
+  TensorView* tv5 = sub(tv1, tv4);
   TensorView* tv6 = sub(tv5, tv0);
 
   fusion.addOutput(tv6);
@@ -12709,7 +12709,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAtTransposed4_CUDA) {
   auto t2_t = t2.permute({3, 0, 1, 2});
   auto t3_t = t3.permute({3, 0, 1, 2});
   auto t4 = t2_t.sub(t3_t);
-  auto t5 = t1_t.add(t4);
+  auto t5 = t1_t.sub(t4);
   auto aten_output = t5.sub(t0_t);
 
   testValidate(
@@ -12730,7 +12730,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAtTransposed5_CUDA) {
   TensorView* tv1 = makeSymbolicTensor(2);
   fusion.addInput(tv1);
   tv1 = transpose(tv1, {{0, 1}});
-  TensorView* tv2 = add(tv0, new Double(2.0));
+  TensorView* tv2 = sub(tv0, new Double(2.0));
   TensorView* tv3 = mul(tv1, tv2);
   fusion.addOutput(tv3);
 
@@ -12752,7 +12752,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAtTransposed5_CUDA) {
   fe.compileFusion(&fusion);
   auto cg_outputs = fe.runFusion(aten_inputs);
 
-  auto t2 = t0.t().add(2.0);
+  auto t2 = t0.t().sub(2.0);
   auto aten_output = t1.t().mul(t2);
 
   testValidate(
@@ -12769,7 +12769,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAtTransposed6_CUDA) {
   TensorView* tv1 = makeSymbolicTensor(2);
   fusion.addInput(tv1);
   tv1 = transpose(tv1, {{0, 1}});
-  TensorView* tv2 = add(tv0, new Double(2.0));
+  TensorView* tv2 = sub(tv0, new Double(2.0));
   TensorView* tv3 = mul(tv1, tv2);
   fusion.addOutput(tv3);
 
@@ -12794,7 +12794,7 @@ TEST(NVFuserTest, FusionAdvancedComputeAtTransposed6_CUDA) {
   fe.compileFusion(&fusion);
   auto cg_outputs = fe.runFusion(aten_inputs);
 
-  auto t2 = t0.t().add(2.0);
+  auto t2 = t0.t().sub(2.0);
   auto aten_output = t1.t().mul(t2);
 
   testValidate(
@@ -12813,12 +12813,12 @@ TEST(NVFuserTest, FusionSegmentReducePointwise_CUDA) {
   fusion->addInput(tv1);
   fusion->addInput(tv2);
 
-  TensorView* tv3 = add(tv0, new Double(1)); // Group 0
+  TensorView* tv3 = sub(tv0, new Double(1)); // Group 0
   TensorView* tv4 =
       max(tv3, {0}); // Group 0 (use max instead to avoid numerical issues)
-  TensorView* tv5 = add(tv4, tv1); //  Group 0 (Non Broadcast after reduce,
+  TensorView* tv5 = sub(tv4, tv1); //  Group 0 (Non Broadcast after reduce,
                                    //  keeps normalization scheduler away)
-  TensorView* tv6 = add(tv5, tv2); //  Group 1 (Broadcast after reduce)
+  TensorView* tv6 = sub(tv5, tv2); //  Group 1 (Broadcast after reduce)
 
   fusion->addOutput(tv6);
 
@@ -12827,10 +12827,10 @@ TEST(NVFuserTest, FusionSegmentReducePointwise_CUDA) {
   at::Tensor t1 = at::randn({65}, options);
   at::Tensor t2 = at::randn({128, 65}, options);
 
-  auto t3 = t0.add(1.0);
+  auto t3 = t0.sub(1.0);
   auto t4 = std::get<0>(at::max(t3, 0));
-  auto t5 = t4.add(t1);
-  auto t6 = t5.add(t2);
+  auto t5 = t4.sub(t1);
+  auto t6 = t5.sub(t2);
 
   FusionExecutorCache executor_cache(std::move(fusion));
 
@@ -12860,7 +12860,7 @@ TEST(NVFuserTest, FusionMultipleVectorize_CUDA) {
   fusion->addInput(tv0);
   fusion->addInput(tv1);
 
-  TensorView* tv3 = add(tv0, tv1);
+  TensorView* tv3 = sub(tv0, tv1);
   fusion->addOutput(tv3);
 
   auto options = at::TensorOptions().dtype(at::kFloat).device(at::kCUDA, 0);
@@ -12967,7 +12967,7 @@ TEST(NVFuserTest, FusionSegmentReduceSoftmax_CUDA) {
 
   fusion->addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1.0));
+  auto tv1 = sub(tv0, new Double(1.0));
   auto tv2 = sum(tv1, {2}); // Group 0
 
   auto output = softmax(tv2, kReductionAxis); // Group 1
@@ -12980,7 +12980,7 @@ TEST(NVFuserTest, FusionSegmentReduceSoftmax_CUDA) {
 
   auto outputs = executor_cache.runFusionWithInputs({at_x});
 
-  auto t1 = at_x.add(1.0);
+  auto t1 = at_x.sub(1.0);
   auto t2 = t1.sum({2});
   auto t3 = at::_softmax(t2.to(at::kDouble), -1, false);
 
@@ -13000,7 +13000,7 @@ TEST(NVFuserTest, FusionSwizzle1_CUDA) {
 
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = mul(tv1, new Double(2));
   fusion.addOutput(tv2);
 
@@ -13041,7 +13041,7 @@ TEST(NVFuserTest, FusionSwizzle2_CUDA) {
 
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = mul(tv1, new Double(2));
   fusion.addOutput(tv2);
 
@@ -13238,7 +13238,7 @@ TEST(NVFuserTest, FusionIssue633_CUDA) {
   fusion.addInput(tv0);
   auto tv1 = makeConcreteTensor({dx, dy, 1});
   fusion.addInput(tv1);
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
   fusion.addOutput(tv2);
 
   tv2->merge(1);
@@ -13270,8 +13270,8 @@ TEST(NVFuserTest, FusionKirScoping_CUDA) {
 
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(2));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(2));
   fusion.addOutput(tv2);
 
   tv2->merge(0);
@@ -13316,7 +13316,7 @@ TEST(NVFuserTest, FusionBroadcastAcrossComputeAt_CUDA) {
   auto tv1 = makeSymbolicTensor(2);
   fusion.addInput(tv1);
   auto tv2 = broadcast(tv0, {false, true});
-  auto tv3 = add(tv1, tv2);
+  auto tv3 = sub(tv1, tv2);
   fusion.addOutput(tv3);
 
   tv3->split(1, 128);
@@ -13349,7 +13349,7 @@ TEST(NVFuserTest, FusionVectorizeMisalignedPointwise_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
   fusion.addOutput(tv2);
 
   const int kTDX = 64;
@@ -13400,7 +13400,7 @@ TEST(NVFuserTest, FusionVectorizeMisalignedPointwiseMergeContig_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
   fusion.addOutput(tv2);
 
   tv2->reorder({{0, 1}, {1, 0}});
@@ -13463,7 +13463,7 @@ TEST(NVFuserTest, FusionVectorizeMisalignedPointwiseMergeSymbolicPass_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
   fusion.addOutput(tv2);
 
   // Create caches for vectorization
@@ -13525,7 +13525,7 @@ TEST(NVFuserTest, FusionVectorizeMisalignedPointwiseMergeSymbolicFail_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
   fusion.addOutput(tv2);
 
   // Create caches for vectorization
@@ -13579,7 +13579,7 @@ TEST(NVFuserTest, FusionVectorizeMisalignedRFactor_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
 
   auto tv3 = sum(tv2, {-1});
 
@@ -13622,7 +13622,7 @@ TEST(NVFuserTest, FusionVectorizeMisalignedRFactor_CUDA) {
   fe.compileFusion(&fusion);
   auto cg_outputs = fe.runFusion(aten_inputs);
 
-  auto aten_output = t0.add(t1).sum(1);
+  auto aten_output = t0.sub(t1).sum(1);
   testValidate(
       &fusion, cg_outputs, aten_inputs, {aten_output}, __LINE__, __FILE__);
 }
@@ -13637,7 +13637,7 @@ TEST(NVFuserTest, FusionVectorizeMisalignedWrongDimFail_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
   fusion.addOutput(tv2);
 
   tv2->split(1, 16);
@@ -13675,7 +13675,7 @@ TEST(NVFuserTest, FusionVectorizeMisalignedStride_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
   fusion.addOutput(tv2);
 
   const int kTDX = 64;
@@ -13724,7 +13724,7 @@ TEST(NVFuserTest, FusionVectorizeMisalignedStrideFail_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
   fusion.addOutput(tv2);
 
   const int kTDX = 64;
@@ -13773,7 +13773,7 @@ TEST(NVFuserTest, FusionVectorization1_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
   fusion.addOutput(tv2);
 
   tv2->split(1, 16);
@@ -13822,7 +13822,7 @@ TEST(NVFuserTest, FusionVectorization2_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
   fusion.addOutput(tv2);
 
   tv2->split(1, 16);
@@ -13860,7 +13860,7 @@ TEST(NVFuserTest, FusionVectorization3_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
   fusion.addOutput(tv2);
 
   tv2->split(1, 16);
@@ -13918,7 +13918,7 @@ TEST(NVFuserTest, FusionVectorizationRFactor_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, tv1);
+  auto tv2 = sub(tv0, tv1);
 
   auto tv3 = sum(tv2, {-1});
 
@@ -13959,11 +13959,11 @@ TEST(NVFuserTest, FusionVectorizationRFactor_CUDA) {
   fe.compileFusion(&fusion);
   auto cg_outputs = fe.runFusion(aten_inputs);
 
-  auto aten_output = t0.add(t1).sum(1);
+  auto aten_output = t0.sub(t1).sum(1);
   testValidate(
       &fusion, cg_outputs, aten_inputs, {aten_output}, __LINE__, __FILE__);
 
-  auto t3 = t0.add(t1).sum(1);
+  auto t3 = t0.sub(t1).sum(1);
 
   testValidate(&fusion, cg_outputs, aten_inputs, {t3}, __LINE__, __FILE__);
 }
@@ -13982,8 +13982,8 @@ TEST(NVFuserTest, FusionSizeOneLoop1_CUDA) {
   fusion.addInput(tv2);
 
   TensorView* tv3 = broadcast(tv0, {false, true});
-  TensorView* tv4 = add(tv3, tv1);
-  TensorView* tv5 = add(tv4, tv2);
+  TensorView* tv4 = sub(tv3, tv1);
+  TensorView* tv5 = sub(tv4, tv2);
 
   fusion.addOutput(tv5);
 
@@ -14044,7 +14044,7 @@ TEST(NVFuserTest, FusionSizeOneLoop2_CUDA) {
   auto tv0 = makeConcreteTensor({x});
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   fusion.addOutput(tv1);
 
   tv1->split(-1, 4);
@@ -14084,8 +14084,8 @@ TEST(NVFuserTest, FusionValidateParallelize1_CUDA) {
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(1));
   fusion.addOutput(tv2);
 
   tv1->axis(-1)->parallelize(ParallelType::TIDx);
@@ -14103,8 +14103,8 @@ TEST(NVFuserTest, FusionValidateParallelize2_CUDA) {
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(1));
   fusion.addOutput(tv2);
 
   tv1->axis(-1)->parallelize(ParallelType::TIDx);
@@ -14124,8 +14124,8 @@ TEST(NVFuserTest, FusionValidateParallelize3_CUDA) {
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(1));
   fusion.addOutput(tv2);
 
   tv1->split(-1, 4);
@@ -14147,8 +14147,8 @@ TEST(NVFuserTest, FusionValidateParallelize4_CUDA) {
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(1));
   fusion.addOutput(tv2);
 
   tv1->split(-1, 4);
@@ -14170,8 +14170,8 @@ TEST(NVFuserTest, FusionValidateParallelize5_CUDA) {
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(1));
   fusion.addOutput(tv2);
 
   tv1->split(-1, 4);
@@ -14197,9 +14197,9 @@ TEST(NVFuserTest, FusionValidateParallelize6_CUDA) {
   fusion.addInput(tv0);
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, new Double(1));
+  auto tv2 = sub(tv0, new Double(1));
   auto tv3 = broadcast(tv2, {true, false, false, false});
-  auto tv4 = add(tv3, tv1);
+  auto tv4 = sub(tv3, tv1);
   fusion.addOutput(tv4);
 
   tv4->merge(0);
@@ -14240,10 +14240,10 @@ TEST(NVFuserTest, FusionDAGMerging_CUDA) {
   auto tv5 = sum(tv4, {0}); // 3
 
   // Branch 1
-  auto tv6 = add(tv1, new Double(1)); // 4
+  auto tv6 = sub(tv1, new Double(1)); // 4
 
   // Merge
-  auto tv7 = add(tv6, tv5); // 5
+  auto tv7 = sub(tv6, tv5); // 5
 
   // Maximum expected output groups (can improve overtime):
   //  {0}, {1}, {2}, {3,4,5}
@@ -14269,18 +14269,18 @@ TEST(NVFuserTest, FusionDAGScalarMerging_CUDA) {
   fusion->addInput(tv0);
   fusion->addInput(i0);
 
-  auto i1 = add(i0, new Double(1.0));
+  auto i1 = sub(i0, new Double(1.0));
   auto i2 = mul(i1, i1);
-  auto i3 = add(i2, i1);
+  auto i3 = sub(i2, i1);
 
   // Branch 0
   auto tv1 = sum(tv0, {0}); // 0
-  auto tv2 = add(tv1, i2);
+  auto tv2 = sub(tv1, i2);
   // Branch 1
   auto tv3 = sum(tv2, {0}); // 1
-  auto tv4 = add(tv3, i3);
+  auto tv4 = sub(tv3, i3);
 
-  auto tv5 = add(tv4, i0);
+  auto tv5 = sub(tv4, i0);
 
   fusion->addOutput(tv5);
 
@@ -14393,7 +14393,7 @@ TEST(NVFuserTest, FusionIOTensorTrivialReductionRepro_CUDA) {
   std::vector<bool> broadcast_mask = {false, true};
 
   auto tv0_bcast = broadcast(tv0, broadcast_mask);
-  auto path1_bcast = add(tv0_bcast, new Double(1.0));
+  auto path1_bcast = sub(tv0_bcast, new Double(1.0));
   auto path1 = sum(path1_bcast, reduction_axes);
   fusion.addOutput(path1);
 
@@ -14414,7 +14414,7 @@ TEST(NVFuserTest, FusionIOTensorTrivialReductionRepro_CUDA) {
   // inplace op, we are adding t0 to itself
   auto outputs = fe.runFusion(aten_inputs, {t0});
 
-  TORCH_CHECK(outputs[0].allclose(t0_ref.add(1)));
+  TORCH_CHECK(outputs[0].allclose(t0_ref.sub(1)));
 }
 
 TEST(NVFuserTest, FusionReductionPredicate_CUDA) {
@@ -14468,10 +14468,10 @@ TEST(NVFuserTest, FusionIssue728_CUDA) {
   auto tv2 = makeSymbolicTensor(1);
   fusion.addOutput(tv2);
 
-  auto tv3 = add(tv0, new Double(1));
-  auto tv4 = add(tv3, tv1);
-  auto tv5 = add(tv4, new Double(1));
-  auto tv6 = add(tv2, new Double(1));
+  auto tv3 = sub(tv0, new Double(1));
+  auto tv4 = sub(tv3, tv1);
+  auto tv5 = sub(tv4, new Double(1));
+  auto tv6 = sub(tv2, new Double(1));
   fusion.addOutput(tv5);
   fusion.addOutput(tv6);
 
@@ -14527,7 +14527,7 @@ TEST(NVFuserTest, FusionIssue757_CUDA) {
   auto tv2 = broadcast(tv1, {false, true});
   auto tv3 = makeSymbolicTensor(2);
   fusion.addInput(tv3);
-  auto tv4 = add(tv2, tv3);
+  auto tv4 = sub(tv2, tv3);
   fusion.addOutput(tv4);
 
   tv1->computeAt(tv4, -1);
@@ -14566,7 +14566,7 @@ TEST(NVFuserTest, FusionPredicatedBlockBroadcast_CUDA) {
   auto tv2 = broadcast(tv1, {false, true});
   auto tv3 = makeSymbolicTensor(2);
   fusion.addInput(tv3);
-  auto tv4 = add(tv2, tv3);
+  auto tv4 = sub(tv2, tv3);
   fusion.addOutput(tv4);
 
   tv4->split(0, 4);
@@ -14606,14 +14606,14 @@ TEST(NVFuserTest, FusionSegmentVerticalMerge_CUDA) {
   fusion->addInput(tv0);
   // {first kernel}
   auto tv1 = sum(tv0, {0});
-  auto tv2 = add(tv1, tv0);
+  auto tv2 = sub(tv1, tv0);
   auto tv3 = sum(tv2, {0});
-  auto tv4 = add(tv3, tv0);
+  auto tv4 = sub(tv3, tv0);
   auto tv5 = sum(tv4, {0});
   auto tv6 = sum(tv5, {0});
   // {second kernel}
-  auto tv7 = add(tv6, tv5);
-  auto tv8 = add(tv7, tv5);
+  auto tv7 = sub(tv6, tv5);
+  auto tv8 = sub(tv7, tv5);
   auto tv9 = sum(tv8, {0});
 
   fusion->addOutput(tv9);
@@ -14643,7 +14643,7 @@ TEST(NVFuserTest, FusionSegmentHorizontalMerge_CUDA) {
 
   // Branch 0 {first kernel}
   auto tv1 = sum(tv0, {0});
-  auto tv2 = add(tv0, i0);
+  auto tv2 = sub(tv0, i0);
   auto tv3 = unaryOp(UnaryOpType::Rsqrt, tv2);
   auto tv4 = sum(tv3, {0});
 
@@ -14684,7 +14684,7 @@ TEST(NVFuserTest, FusionSegmentMixReduction_CUDA) {
   // kernel 2
   auto tv2 = sum(tv0, {2});
   auto tv3 = broadcast(tv2, {false, false, true});
-  auto tv4 = add(tv0, tv3);
+  auto tv4 = sub(tv0, tv3);
   auto tv5 = sum(tv4, {2});
   // end of kernel 2
   // kernel 1
@@ -14736,8 +14736,8 @@ TEST(NVFuserTest, FusionSBAR_CUDA) {
   auto weight_bcast = broadcast(weight, broadcast_mask);
   auto scale = mul(x, weight_bcast);
   auto bias_bcast = broadcast(bias, broadcast_mask);
-  auto scale_bias = add(scale, bias_bcast);
-  auto scale_bias_add = add(scale_bias, y);
+  auto scale_bias = sub(scale, bias_bcast);
+  auto scale_bias_add = sub(scale_bias, y);
   auto scale_bias_add_relu = unaryOp(UnaryOpType::Relu, scale_bias_add);
 
   fusion.addOutput(scale_bias_add_relu);
@@ -14764,8 +14764,8 @@ TEST(NVFuserTest, FusionSBAR_CUDA) {
   outputs = executor.runFusion(c10::ArrayRef<c10::IValue>(inputs), lparams);
 
   auto at_scale = at::mul(at_x, at_weight);
-  auto at_scale_bias = at::add(at_scale, at_bias);
-  auto pwise_add = at::add(at_scale_bias, at_y);
+  auto at_scale_bias = at::sub(at_scale, at_bias);
+  auto pwise_add = at::sub(at_scale_bias, at_y);
   auto output = at::relu(pwise_add);
 
   testValidate(&fusion, outputs, inputs, {output}, __LINE__, __FILE__);
@@ -14778,9 +14778,9 @@ TEST(NVFuserTest, FusionSingleElement_CUDA) {
   auto tv0 = makeSymbolicTensor(0);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(2.5));
+  auto tv1 = sub(tv0, new Double(2.5));
 
-  auto tv2 = add(tv1, new Double(3.5));
+  auto tv2 = sub(tv1, new Double(3.5));
   fusion.addOutput(tv2);
 
   auto options = at::TensorOptions().dtype(at::kFloat).device(at::kCUDA, 0);
@@ -14794,7 +14794,7 @@ TEST(NVFuserTest, FusionSingleElement_CUDA) {
   fe.compileFusion(&fusion);
   fe.runFusion({input}, {cg_output}, lparams);
 
-  auto aten_output = input.add(2.5).add(3.5);
+  auto aten_output = input.sub(2.5).sub(3.5);
 
   testValidate(
       &fusion, {cg_output}, {input}, {aten_output}, __LINE__, __FILE__);
@@ -15094,7 +15094,7 @@ TEST(NVFuserTest, FusionZeroSizeTensorPW_CUDA) {
   auto tv1 = makeConcreteTensor({0});
   fusion.addInput(tv1);
 
-  auto tv2 = add(tv0, new Double(2.5));
+  auto tv2 = sub(tv0, new Double(2.5));
   fusion.addOutput(tv2);
 
   auto tv3 = makeConcreteTensor({0});
@@ -15113,7 +15113,7 @@ TEST(NVFuserTest, FusionZeroSizeTensorPW_CUDA) {
   fe.compileFusion(&fusion);
   fe.runFusion({input0, input1}, {cg_output2, cg_output3}, lparams);
 
-  auto aten_output2 = input0.add(2.5);
+  auto aten_output2 = input0.sub(2.5);
   at::Tensor aten_output3 = at::empty({0}, options);
 
   testValidate(
@@ -15183,7 +15183,7 @@ TEST(NVFuserTest, FusionZeroSizeTensorNormalization_CUDA) {
 
   auto tv2 = sum(tv0, {0});
   auto tv3 = broadcast(tv2, {true, false});
-  auto tv4 = add(tv0, tv3);
+  auto tv4 = sub(tv0, tv3);
   fusion.addOutput(tv4);
 
   auto tv5 = makeConcreteTensor({0});
@@ -15204,7 +15204,7 @@ TEST(NVFuserTest, FusionZeroSizeTensorNormalization_CUDA) {
   FusionExecutor fe;
   fe.compileFusion(&fusion);
   auto cg_outputs = fe.runFusion({input0, input1}, lparams);
-  auto aten_output2 = input0.sum({0}).add(input0);
+  auto aten_output2 = input0.sum({0}).sub(input0);
   at::Tensor aten_output3 = at::empty({0}, options);
 
   testValidate(
@@ -15230,12 +15230,12 @@ TEST(NVFuserTest, FusionSegmentIoAlias_CUDA) {
   fusion->addInput(tv1);
   fusion->addInput(tv2);
 
-  TensorView* tv3 = add(tv0, new Double(1)); // Group 0
+  TensorView* tv3 = sub(tv0, new Double(1)); // Group 0
   TensorView* tv4 =
       max(tv3, {0}); // Group 0 (use max instead to avoid numerical issues)
-  TensorView* tv5 = add(tv4, tv1); //  Group 0 (Non Broadcast after reduce,
+  TensorView* tv5 = sub(tv4, tv1); //  Group 0 (Non Broadcast after reduce,
                                    //  keeps normalization scheduler away)
-  TensorView* tv6 = add(tv5, tv2); //  Group 1 (Broadcast after reduce)
+  TensorView* tv6 = sub(tv5, tv2); //  Group 1 (Broadcast after reduce)
 
   fusion->addOutput(tv6);
   // Note: test alias;
@@ -15246,10 +15246,10 @@ TEST(NVFuserTest, FusionSegmentIoAlias_CUDA) {
   at::Tensor t1 = at::randn({65}, options);
   at::Tensor t2 = at::randn({128, 65}, options);
 
-  auto t3 = t0.add(1.0);
+  auto t3 = t0.sub(1.0);
   auto t4 = std::get<0>(at::max(t3, 0));
-  auto t5 = t4.add(t1);
-  auto t6 = t5.add(t2);
+  auto t5 = t4.sub(t1);
+  auto t6 = t5.sub(t2);
 
   FusionExecutorCache executor_cache(std::move(fusion));
 
@@ -15391,7 +15391,7 @@ TEST(NVFuserTest, FusionLargeWelfordNormalization_CUDA) {
 
   auto tvs1 = Welford(tv0, {1});
   auto sum_of_tv0 = sum(tv0, {1});
-  auto sum_plus_avg = add(tvs1.avg, sum_of_tv0);
+  auto sum_plus_avg = sub(tvs1.avg, sum_of_tv0);
 
   fusion->addOutput(sum_plus_avg);
 
@@ -15425,8 +15425,8 @@ TEST(NVFuserTest, FusionWelfordOtherPersistence_CUDA) {
   auto sum_of_tv0 = sum(tv0, {1});
   auto sum_bcasted = broadcast(sum_of_tv0, {false, true});
   auto avg_bcasted = broadcast(tvs1.avg, {false, true});
-  auto tv0_plus_sum = add(tv0, sum_bcasted);
-  auto tv0_plus_avg = add(tv0, avg_bcasted);
+  auto tv0_plus_sum = sub(tv0, sum_bcasted);
+  auto tv0_plus_avg = sub(tv0, avg_bcasted);
 
   fusion->addOutput(tv0_plus_sum);
   fusion->addOutput(tv0_plus_avg);
@@ -15488,12 +15488,12 @@ TEST(NVFuserTest, TestBackOffInnerBroadcast_CUDA) {
   auto tv4 = broadcast(tv1, {false, false, true, true});
   auto tv5 = unaryOp(UnaryOpType::Rsqrt, tv2);
 
-  auto tv6 = add(tv3, tv5);
-  auto tv7 = add(tv4, tv5);
-  auto tv8 = add(tv3, tv4);
+  auto tv6 = sub(tv3, tv5);
+  auto tv7 = sub(tv4, tv5);
+  auto tv8 = sub(tv3, tv4);
 
-  auto tv9 = add(tv6, tv7);
-  auto tv10 = add(tv9, tv8);
+  auto tv9 = sub(tv6, tv7);
+  auto tv10 = sub(tv9, tv8);
 
   fusion->addOutput(tv10);
 
@@ -15519,7 +15519,7 @@ TEST(NVFuserTest, TestBackOffInnerBroadcast2_CUDA) {
   fusion->addInput(tv0);
   fusion->addInput(tv1);
   auto tv2 = broadcast(tv0, {false, false, true});
-  auto tv3 = add(tv2, tv1);
+  auto tv3 = sub(tv2, tv1);
 
   fusion->addOutput(tv3);
   tv3->split(-2, 4);
@@ -15540,7 +15540,7 @@ TEST(NVFuserTest, TestBackOffInnerBroadcast3_CUDA) {
   fusion->addInput(tv1);
   auto tv2 = broadcast(tv0, {false, false, true});
   auto tv3 = broadcast(tv2, {false, true, false, false});
-  auto tv4 = add(tv3, tv1);
+  auto tv4 = sub(tv3, tv1);
 
   fusion->addOutput(tv4);
   tv0->computeAt(tv4, -1);
@@ -15605,9 +15605,9 @@ TEST(NVFuserTest, FusionPredicateElimination_CUDA) {
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(2));
-  auto tv3 = add(tv2, new Double(3));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(2));
+  auto tv3 = sub(tv2, new Double(3));
 
   fusion.addOutput(tv3);
 
@@ -15646,7 +15646,7 @@ TEST(NVFuserTest, ForceFp16Simple_CUDA) {
   auto tv3 = broadcast(tv2, {false, true});
 
   // Group 2
-  auto tv4 = add(tv3, tv1); // Edge: tv3: expect cast
+  auto tv4 = sub(tv3, tv1); // Edge: tv3: expect cast
   auto tv5 = castOp(DataType::Half, tv4);
 
   fusion->addOutput(tv5);
@@ -15685,7 +15685,7 @@ TEST(NVFuserTest, ForceFp16NotAllCast_CUDA) {
   auto tv5 = sum(tv0, {1});
 
   // Group 2
-  auto tv6 = add(tv4, tv1); // edge tv4, expect cast
+  auto tv6 = sub(tv4, tv1); // edge tv4, expect cast
   auto tv7 = castOp(DataType::Half, tv6);
 
   // Group 3
@@ -15728,7 +15728,7 @@ TEST(NVFuserTest, FusionIssue970_CUDA) {
   fusion.addInput(tv0);
   auto tv1 = sum(tv0, {1});
   auto tv2 = broadcast(tv1, {false, true});
-  auto tv3 = add(tv2, tv0);
+  auto tv3 = sub(tv2, tv0);
   fusion.addOutput(tv3);
 
   tv1->split(1, 4);
@@ -15756,8 +15756,8 @@ TEST(NVFuserTest, FusionIssue1016_CUDA) {
   auto tv0 = makeSymbolicTensor(2);
   fusion.addInput(tv0);
 
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv1, new Double(2));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv1, new Double(2));
 
   fusion.addOutput(tv2);
 
@@ -15788,7 +15788,7 @@ TEST(NVFuserTest, FusionIssue1021_CUDA) {
 
   auto tv0 = makeSymbolicTensor(1);
   fusion.addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
   auto tv2 = broadcast(tv1, {false, true});
   fusion.addOutput(tv2);
 
@@ -15824,7 +15824,7 @@ TEST(NVFuserTest, FusionNonUniqueThreadDim_CUDA) {
   auto tv1 = sum(tv0, {0});
   fusion->addOutput(tv1);
 
-  auto tv2 = add(tv0, new Double(1));
+  auto tv2 = sub(tv0, new Double(1));
   fusion->addOutput(tv2);
 
   tv1->split(0, 8);
@@ -15855,8 +15855,8 @@ TEST(NVFuserTest, FusionParallelDimensionMap1_CUDA) {
 
   auto tv0 = makeSymbolicTensor(1);
   fusion->addInput(tv0);
-  auto tv1 = add(tv0, new Double(1));
-  auto tv2 = add(tv0, new Double(1));
+  auto tv1 = sub(tv0, new Double(1));
+  auto tv2 = sub(tv0, new Double(1));
   fusion->addOutput(tv1);
   fusion->addOutput(tv2);
 
@@ -15908,7 +15908,7 @@ TEST(NVFuserTest, FusionParallelDimensionMap2_CUDA) {
   auto tv1 = makeSymbolicTensor(2);
   fusion->addInput(tv1);
   auto tv2 = broadcast(tv0, {false, true});
-  auto tv3 = add(tv1, tv2);
+  auto tv3 = sub(tv1, tv2);
   fusion->addOutput(tv3);
 
   tv3->split(-1, 8, false);
@@ -15947,17 +15947,17 @@ TEST(NVFuserTest, FusionParallelDimensionMap3_CUDA) {
   auto tv0 = makeSymbolicTensor(1);
   fusion->addInput(tv0);
 
-  auto tv2 = add(tv0, new Double(1));
+  auto tv2 = sub(tv0, new Double(1));
   fusion->addOutput(tv2);
-  auto tv3 = add(tv0, new Double(1));
+  auto tv3 = sub(tv0, new Double(1));
   fusion->addOutput(tv3);
 
   tv2->split(0, 10);
   tv3->split(0, 20);
 
-  auto tv4 = add(tv0, new Double(1));
+  auto tv4 = sub(tv0, new Double(1));
   fusion->addOutput(tv4);
-  auto tv5 = add(tv0, new Double(1));
+  auto tv5 = sub(tv0, new Double(1));
   fusion->addOutput(tv5);
 
   // Not mapped but equal extent
@@ -16007,9 +16007,9 @@ TEST(NVFuserTest, FusionParallelDimensionMap4_CUDA) {
   fusion.addInput(tv0);
   auto tv1 = makeSymbolicTensor(2);
   fusion.addInput(tv1);
-  auto tv2 = add(tv0, new Double(1));
+  auto tv2 = sub(tv0, new Double(1));
   auto tv3 = broadcast(tv2, {true, false});
-  auto tv4 = add(tv3, tv1);
+  auto tv4 = sub(tv3, tv1);
   fusion.addOutput(tv4);
 
   tv4->split(1, 4);
@@ -16055,7 +16055,7 @@ TEST(NVFuserTest, FusionParallelDimensionMap5_CUDA) {
   auto tv1 = makeSymbolicTensor(2);
   fusion.addInput(tv1);
   auto tv3 = broadcast(tv0, {false, true});
-  auto tv4 = add(tv3, tv1);
+  auto tv4 = sub(tv3, tv1);
   fusion.addOutput(tv4);
 
   tv4->split(1, 4);

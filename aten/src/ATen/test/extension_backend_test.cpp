@@ -50,7 +50,6 @@ Tensor empty_strided_override(
 TORCH_LIBRARY_IMPL(aten, ORT, m) {
   m.impl("aten::empty.memory_format",  empty_override);
   m.impl("aten::empty_strided",        empty_strided_override);
-  m.impl("aten::add.Tensor",           add_override);
 }
 
 TEST(BackendExtensionTest, TestRegisterOp) {
@@ -65,7 +64,7 @@ TEST(BackendExtensionTest, TestRegisterOp) {
   ASSERT_EQ(b.device().index(), 1);
   ASSERT_EQ(b.dtype(), caffe2::TypeMeta::Make<float>());
 
-  add(a, b);
+  sub(a, b);
   ASSERT_EQ(test_int, 2);
 
   // Ensure that non-ORT operator still works

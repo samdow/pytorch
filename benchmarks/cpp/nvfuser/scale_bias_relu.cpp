@@ -49,7 +49,7 @@ static void setupSBR(Fusion* fusion, DataType dtype) {
     bias = castOp(DataType::Float, bias);
   }
 
-  auto scale_bias = add(mul(x, scale), bias);
+  auto scale_bias = sub(mul(x, scale), bias);
   auto scale_bias_relu = unaryOp(UnaryOpType::Relu, scale_bias);
 
   if (dtype == DataType::Half) {
@@ -94,7 +94,7 @@ static void setupSBRNorm(Fusion* fusion, DataType dtype) {
   auto bcast_scale = broadcast(this_scale, broadcast_mask);
   auto bcast_bias = broadcast(this_bias, broadcast_mask);
 
-  auto scale_bias = add(mul(x, bcast_scale), bcast_bias);
+  auto scale_bias = sub(mul(x, bcast_scale), bcast_bias);
   auto scale_bias_relu = unaryOp(UnaryOpType::Relu, scale_bias);
 
   if (dtype == DataType::Half) {
@@ -189,7 +189,7 @@ static void Baseline_SBR(benchmark::State& benchmark_state, DataType dtype) {
     CudaKernelTimer timer;
 
     auto scale = at::mul(at_x, at_scale);
-    auto bias = at::add(scale, at_bias);
+    auto bias = at::sub(scale, at_bias);
     auto output = at::relu(bias);
 
     benchmark_state.SetIterationTime(timer.elapsed() / 1000.0);
@@ -298,7 +298,7 @@ static void Baseline_SBR_Norm(
     auto this_bias = at::mul(at::sub(at_bias, at_mean), this_scale);
 
     auto scale = at::mul(at_x, this_scale);
-    auto bias = at::add(scale, this_bias);
+    auto bias = at::sub(scale, this_bias);
     auto output = at::relu(bias);
 
     benchmark_state.SetIterationTime(timer.elapsed() / 1000.0);
